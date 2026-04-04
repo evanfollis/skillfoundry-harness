@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "bundle_id": "product-brief-v1",
+  "purpose": "Summarize the approved product brief for downstream runtime use.",
+  "owners": [
+    {
+      "name": "Skillfoundry Team",
+      "contact": "team@skillfoundry.dev"
+    }
+  ],
+  "sources": [
+    {
+      "kind": "doc",
+      "locator": "notion://product/brief/123",
+      "captured_at": "2025-04-04T12:00:00Z",
+      "notes": "Approved brief snapshot"
+    }
+  ],
+  "content": [
+    {
+      "id": "goal",
+      "type": "summary",
+      "body": "The system should produce stable, reviewable outputs from promoted context bundles.",
+      "source_refs": [
+        0
+      ]
+    }
+  ],
+  "promotion": {
+    "status": "candidate",
+    "reviewed_at": "2025-04-04T12:30:00Z",
+    "compatibility": "additive",
+    "notes": "Reference fixture for validator and contract evolution."
+  }
+}

@@ -1,0 +1,22 @@
+name: Harness Checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python3.12 -m pip install -e .
+      - name: Check repository hygiene
+        run: python3.12 scripts/check_repo_hygiene.py
+      - name: Run tests
+        run: python3.12 -m unittest discover -s tests

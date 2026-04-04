@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skillfoundry.dev/schemas/context-bundle.schema.json",
+  "title": "Skillfoundry Context Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "purpose",
+    "owners",
+    "sources",
+    "content",
+    "promotion"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.0$"
+    },
+    "bundle_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 10
+    },
+    "owners": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "contact"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contact": {
+            "type": "string",
+            "minLength": 3
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "locator",
+          "captured_at"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "doc",
+              "code",
+              "issue",
+              "conversation",
+              "dataset",
+              "other"
+            ]
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "captured_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "content": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "body"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "instruction",
+              "constraint",
+              "fact",
+              "example",
+              "summary"
+            ]
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "promotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reviewed_at"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "candidate",
+            "promoted"
+          ]
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "compatibility": {
+          "type": "string",
+          "enum": [
+            "additive",
+            "compatible",
+            "breaking"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

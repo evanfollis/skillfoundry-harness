@@ -1,0 +1,18 @@
+[repository]
+schema_version = "1"
+name = "Minimal Context Repo"
+agent_id = "minimal-agent"
+
+[layout]
+bundles_dir = "bundles"
+memory_dir = "memory"
+artifacts_dir = "artifacts"
+runs_dir = "runs"
+
+[frontdoor]
+pinned_paths = ["README.md", "memory/mission.md"]
+discoverable_paths = ["bundles", "memory", "artifacts"]
+
+[promotion_policy]
+promotable_memory_roots = ["notes", "plans"]
+required_validation_kinds = ["canon-safe", "frontdoor-reviewed"]
