@@ -7,6 +7,7 @@ from dataclasses import asdict
 from pathlib import Path
 import sys
 
+from .bootstrap import fork_context_lineage, init_context_lineage
 from .runtime import Runtime
 from .validation import ValidationError, validate_bundle_file
 
@@ -29,6 +30,18 @@ def build_parser() -> argparse.ArgumentParser:
     frontdoor_parser = subparsers.add_parser("frontdoor", help="Render the progressive-disclosure front door")
     frontdoor_parser.add_argument("path", nargs="?", default=".")
     frontdoor_parser.add_argument("--max-chars", type=int, default=200)
+
+    init_context_parser = subparsers.add_parser("init-context", help="Initialize a local git-backed context lineage")
+    init_context_parser.add_argument("path")
+    init_context_parser.add_argument("--agent-id", required=True)
+    init_context_parser.add_argument("--name", required=True)
+    init_context_parser.add_argument("--mission", default="")
+
+    fork_context_parser = subparsers.add_parser("fork-context", help="Fork one context lineage into another local checkout")
+    fork_context_parser.add_argument("source_path")
+    fork_context_parser.add_argument("target_path")
+    fork_context_parser.add_argument("--agent-id")
+    fork_context_parser.add_argument("--name")
 
     branch_parser = subparsers.add_parser("branch-describe", help="Describe a bounded branch-local workspace")
     branch_parser.add_argument("repo_path")
@@ -136,6 +149,28 @@ def main(argv: list[str] | None = None) -> int:
                 print(entry["preview"])
             for path in snapshot["discoverable"]:
                 print(f"[DISCOVERABLE] {path}")
+            return 0
+        if args.command == "init-context":
+            repository = init_context_lineage(
+                args.path,
+                agent_id=args.agent_id,
+                name=args.name,
+                mission=args.mission or None,
+            )
+            print(f"root={repository.root}")
+            print(f"agent_id={repository.config.agent_id}")
+            print(f"name={repository.config.name}")
+            return 0
+        if args.command == "fork-context":
+            repository = fork_context_lineage(
+                args.source_path,
+                args.target_path,
+                agent_id=args.agent_id,
+                name=args.name,
+            )
+            print(f"root={repository.root}")
+            print(f"agent_id={repository.config.agent_id}")
+            print(f"name={repository.config.name}")
             return 0
         if args.command == "branch-describe":
             runtime = Runtime.open(args.repo_path)

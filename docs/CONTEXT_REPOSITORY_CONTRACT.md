@@ -3,6 +3,9 @@
 `skillfoundry-harness` runs against agent context repositories as external
 workspaces. The runtime boundary is intentionally narrow.
 
+The harness assumes a context repository is the durable reasoning substrate for an
+agent. Individual runtime instances are disposable; the context lineage is not.
+
 ## Required Root Files
 
 - `skillfoundry.toml`
@@ -10,6 +13,9 @@ workspaces. The runtime boundary is intentionally narrow.
 - `memory/`
 - `artifacts/`
 - `runs/`
+
+In practice these repos should be git-backed so they can be branched, forked, and
+reviewed over time. A remote is optional.
 
 ## `skillfoundry.toml`
 

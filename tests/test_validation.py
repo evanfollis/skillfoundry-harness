@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from skillfoundry_harness import Runtime
+from skillfoundry_harness import Runtime, fork_context_lineage, init_context_lineage
 from skillfoundry_harness.validation import ValidationError, validate_bundle_file
 
 
@@ -40,6 +40,67 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(snapshot["pinned"][0]["path"], "README.md")
         self.assertIn("Minimal Context Repo", snapshot["pinned"][0]["preview"])
         self.assertEqual(snapshot["discoverable"], ["bundles", "memory", "artifacts"])
+
+    def test_init_context_lineage_creates_valid_git_backed_repo(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            repo_root = Path(tmpdir) / "researcher-context"
+            repository = init_context_lineage(
+                repo_root,
+                agent_id="researcher",
+                name="Researcher Context",
+                mission="Gather grounded evidence and refine current-state canon.",
+            )
+
+            self.assertEqual(repository.config.agent_id, "researcher")
+            self.assertEqual((repo_root / "memory" / "mission.md").read_text(), "# Mission\n\nGather grounded evidence and refine current-state canon.\n")
+            result = subprocess.run(
+                ["git", "-C", str(repo_root), "rev-parse", "--is-inside-work-tree"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            self.assertEqual(result.stdout.strip(), "true")
+            self.assertEqual(
+                subprocess.run(
+                    ["git", "-C", str(repo_root), "status", "--short"],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                ).stdout.strip(),
+                "",
+            )
+
+    def test_fork_context_lineage_clones_locally_without_origin(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source_root = Path(tmpdir) / "source"
+            target_root = Path(tmpdir) / "forked"
+            init_context_lineage(source_root, agent_id="researcher", name="Researcher Context")
+
+            repository = fork_context_lineage(
+                source_root,
+                target_root,
+                agent_id="designer",
+                name="Designer Context",
+            )
+
+            self.assertEqual(repository.config.agent_id, "designer")
+            self.assertEqual(repository.config.name, "Designer Context")
+            origin_result = subprocess.run(
+                ["git", "-C", str(target_root), "remote"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            self.assertEqual(origin_result.stdout.strip(), "")
+            self.assertEqual(
+                subprocess.run(
+                    ["git", "-C", str(target_root), "status", "--short"],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                ).stdout.strip(),
+                "",
+            )
 
     def test_repository_bounded_write_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -404,6 +465,50 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("[PINNED] README.md", result.stdout)
         self.assertIn("[DISCOVERABLE] bundles", result.stdout)
+
+    def test_cli_init_and_fork_context(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            source_root = Path(tmpdir) / "source"
+            target_root = Path(tmpdir) / "forked"
+
+            init_result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "skillfoundry_harness.cli",
+                    "init-context",
+                    str(source_root),
+                    "--agent-id",
+                    "researcher",
+                    "--name",
+                    "Researcher Context",
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.assertIn("agent_id=researcher", init_result.stdout)
+
+            fork_result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "skillfoundry_harness.cli",
+                    "fork-context",
+                    str(source_root),
+                    str(target_root),
+                    "--agent-id",
+                    "designer",
+                    "--name",
+                    "Designer Context",
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(fork_result.returncode, 0, fork_result.stderr)
+            self.assertIn("agent_id=designer", fork_result.stdout)
 
     def test_cli_branch_describe(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

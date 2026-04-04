@@ -1,7 +1,7 @@
 # skillfoundry-harness
 
 `skillfoundry-harness` is the installable Python package that creates and runs
-Skillfoundry agents.
+Skillfoundry agents against git-backed context lineages.
 
 This repo owns the stable machinery: runtime semantics, repository contracts,
 validation, CLI entrypoints, and the APIs used to operate on agent context repos.
@@ -9,7 +9,9 @@ It should be pip-installable and usable against any compliant context repository
 without importing workspace-local Python code.
 
 The harness is intentionally opinionated about the context repository boundary. A
-valid agent context repo exposes one config file and four explicit roots:
+valid agent context repo exposes one config file and four explicit roots. That
+context repo is the primary canonical artifact for an agent; fresh runtime instances
+come and go inside that boundary.
 
 - `bundles/` for reviewed context inputs.
 - `memory/` for long-lived harness-managed state.
@@ -44,6 +46,8 @@ valid agent context repo exposes one config file and four explicit roots:
 The initial scaffold provides:
 
 - `Runtime.open(path)` for opening a context repo.
+- `skillfoundry init-context <path> --agent-id ... --name ...` for creating a local-first context lineage.
+- `skillfoundry fork-context <source> <target>` for branching a context lineage into a new checkout.
 - `skillfoundry validate <path>` for validating a context repo or bundle.
 - `skillfoundry describe <path>` for printing the resolved repository contract.
 - `skillfoundry frontdoor <path>` for rendering the pinned context front door.
@@ -82,6 +86,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -e .
 python3 -m unittest discover -s tests
+python3 -m skillfoundry_harness.cli init-context /tmp/demo-context --agent-id demo --name "Demo Context"
 python3 -m skillfoundry_harness.cli validate tests/fixtures/minimal_context_repo
 python3 -m skillfoundry_harness.cli list-bundles tests/fixtures/minimal_context_repo
 ```

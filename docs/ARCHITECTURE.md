@@ -9,7 +9,7 @@ The system is split into three layers:
 2. `skillfoundry-agents`
    The coordination hub that tracks which agents exist.
 3. `agents/<agent>/context`
-   A per-agent git repository, typically mounted as a submodule inside the hub.
+   A mounted checkout of a per-agent git-backed context lineage.
 
 ## Ownership
 
@@ -24,8 +24,10 @@ The system is split into three layers:
 `skillfoundry-agents` owns:
 
 - Agent registry and manifests.
+- Reusable declarative role/profile overlays referenced by agent manifests.
 - Shared orchestration metadata.
 - The workspace topology linking agents to their context repos.
+- The workspace topology linking agents to their mounted context checkouts.
 
 Each agent `context/` repo owns:
 
@@ -35,7 +37,8 @@ Each agent `context/` repo owns:
 ## Expected Flow
 
 1. An agent is declared in `skillfoundry-agents`.
-2. Its `context/` repo is attached as a submodule.
+2. A git-backed context lineage is initialized, forked, or otherwise mounted at
+   `agents/<agent>/context`.
 3. The harness is installed in an environment.
 4. The harness opens the context repo through `Runtime.open(path)`.
 5. Validation and execution happen against explicit repository surfaces.
@@ -131,5 +134,7 @@ worktree metadata should point back to the latest thread/turn/run that used it.
 - The harness must not import arbitrary workspace code.
 - The hub must not become the canonical home of context semantics.
 - Agent contexts must be independently versionable and reviewable.
+- Git remotes are optional. A local git-backed context lineage is still a first-class
+  agent substrate.
 - Cross-agent interaction should happen through explicit harness APIs or shared artifacts,
   not by one agent mutating another agent's repo directly.
