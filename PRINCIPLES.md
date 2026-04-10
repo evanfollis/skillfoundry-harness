@@ -44,6 +44,12 @@ Runs, transcripts, tool traces, and validation logs are operational evidence. Th
 improve observability and handoff, but they must not become shadow canon for the
 agent's current beliefs, objectives, or state.
 
+## Testable Hypotheses Beat Decorative Semantics
+
+If the system claims it is learning, that learning should be tied to falsifiable
+hypotheses, measurable thresholds, and explicit update rules. Otherwise the repo is
+only accumulating narrative, not improving its decision quality.
+
 ## The Runtime Should Stay Thin
 
 Runtime glue should assemble context, expose tools, persist sessions, and emit
