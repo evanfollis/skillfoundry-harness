@@ -62,10 +62,10 @@ The initial scaffold provides:
 - Canonical context bundle validation owned by the harness.
 - typed bundle loading from `bundles/` for runtime-facing consumption.
 
-See [docs/CONTEXT_REPOSITORY_CONTRACT.md](/Users/evanfollis/projects/skillfoundry/skillfoundry-harness/docs/CONTEXT_REPOSITORY_CONTRACT.md) for the
+See [docs/CONTEXT_REPOSITORY_CONTRACT.md](docs/CONTEXT_REPOSITORY_CONTRACT.md) for the
 current repository contract.
-See [docs/DESIGN_SYNTHESIS.md](/Users/evanfollis/projects/skillfoundry/skillfoundry-harness/docs/DESIGN_SYNTHESIS.md) for the external ideas that should
-shape the next primitives.
+See [docs/DESIGN_SYNTHESIS.md](docs/DESIGN_SYNTHESIS.md) for the external ideas that
+shaped the harness primitives.
 
 ## Local Setup
 

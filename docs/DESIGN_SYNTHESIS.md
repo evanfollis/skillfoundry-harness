@@ -115,9 +115,9 @@ Transferred ideas:
 
 Local source:
 
-- [PRINCIPLES](/Users/evanfollis/projects/skillfoundry/maf-harness/docs/PRINCIPLES.md)
-- [architecture](/Users/evanfollis/projects/skillfoundry/maf-harness/docs/architecture.md)
-- [context-model](/Users/evanfollis/projects/skillfoundry/maf-harness/docs/context-model.md)
+- PRINCIPLES.md (maf-harness, historical predecessor)
+- architecture.md (maf-harness, historical predecessor)
+- context-model.md (maf-harness, historical predecessor)
 
 Transferred ideas:
 
@@ -149,5 +149,4 @@ The next harness primitives should be:
 6. A compaction protocol so continuity survives long-running work without bloating
    startup context.
 
-Until these exist, `skillfoundry-harness` is a good repository contract and
-validation scaffold, but not yet a fully realized harness.
+All six primitives are now implemented in the harness.

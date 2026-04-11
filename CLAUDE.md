@@ -20,3 +20,14 @@ All under /opt/projects/skillfoundry/:
 - `skillfoundry-agents` — Agent registry and coordination
 - `skillfoundry-*-context` — Git-backed context lineages per agent role
 - `skillfoundry-products` — Software artifact output
+
+## Review Expectation
+
+Use `/review` periodically as an adversarial review.
+
+In the Skillfoundry workspace this means using Codex adversarial pressure to test:
+
+- contract drift,
+- hidden coupling,
+- missing failure modes,
+- and false confidence from internal coherence.

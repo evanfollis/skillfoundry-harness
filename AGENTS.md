@@ -27,3 +27,4 @@ A harness change is incomplete if it does not answer:
 - What repository contract does it depend on?
 - How does a context repo discover or satisfy that contract?
 - What test proves the behavior?
+- What did adversarial `/review` using Claude Code say about the contract, failure modes, or hidden coupling?

@@ -96,6 +96,16 @@ def _render_repository_config(
     )
 
 
+def _patch_toml_identity(toml_path: Path, *, agent_id: str, name: str) -> None:
+    """Rewrite only agent_id and name in an existing skillfoundry.toml, preserving all other content."""
+    import re
+
+    text = toml_path.read_text()
+    text = re.sub(r'^(agent_id\s*=\s*)"[^"]*"', f'\\1"{agent_id}"', text, flags=re.MULTILINE)
+    text = re.sub(r'^(name\s*=\s*)"[^"]*"', f'\\1"{name}"', text, flags=re.MULTILINE)
+    toml_path.write_text(text)
+
+
 def _write_bootstrap_files(root: Path, *, agent_id: str, name: str, mission: str) -> None:
     for directory in ("bundles", "memory", "artifacts", "runs"):
         (root / directory).mkdir(parents=True, exist_ok=True)
@@ -167,19 +177,10 @@ def fork_context_lineage(
     effective_agent_id = agent_id or source_repo.config.agent_id
     effective_name = name or source_repo.config.name
     if effective_agent_id != source_repo.config.agent_id or effective_name != source_repo.config.name:
-        (target_root / "skillfoundry.toml").write_text(
-            _render_repository_config(
-                agent_id=effective_agent_id,
-                name=effective_name,
-                bundles_dir=source_repo.config.layout.bundles_dir,
-                memory_dir=source_repo.config.layout.memory_dir,
-                artifacts_dir=source_repo.config.layout.artifacts_dir,
-                runs_dir=source_repo.config.layout.runs_dir,
-                pinned_paths=source_repo.config.frontdoor.pinned_paths,
-                discoverable_paths=source_repo.config.frontdoor.discoverable_paths,
-                promotable_memory_roots=source_repo.config.promotion_policy.promotable_memory_roots,
-                required_validation_kinds=source_repo.config.promotion_policy.required_validation_kinds,
-            )
+        _patch_toml_identity(
+            target_root / "skillfoundry.toml",
+            agent_id=effective_agent_id,
+            name=effective_name,
         )
         _commit_all(target_root, f"Fork context lineage for {effective_agent_id}")
 

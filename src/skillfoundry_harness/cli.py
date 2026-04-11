@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import asdict
 from pathlib import Path
+import subprocess
 import sys
 
 from .bootstrap import fork_context_lineage, init_context_lineage
@@ -296,6 +297,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"status={proposal.status}")
             print(f"target_path={proposal.target_path}")
             return 0
+    except subprocess.CalledProcessError as exc:
+        detail = exc.stderr.strip() if exc.stderr else str(exc)
+        print(f"ERROR git operation failed: {detail}", file=sys.stderr)
+        return 1
     except (ValidationError, FileNotFoundError) as exc:
         print(f"ERROR {exc}", file=sys.stderr)
         return 1
