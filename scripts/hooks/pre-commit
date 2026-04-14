@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Shared pre-commit hook for all skillfoundry repos.
+# Rejects commits that introduce secret-looking files or content.
+# Bypass (only if you genuinely need to): git commit --no-verify
+
+set -euo pipefail
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+[[ -z "$STAGED" ]] && exit 0
+
+FAIL=0
+
+# 1. Filename patterns that should never be committed
+NAME_RE='(^|/)\.?(mcpregistry_[^/]*|.*token[^/]*|.*secret[^/]*|.*\.key|\.env(\..+)?)$'
+BAD_NAMES=$(echo "$STAGED" | grep -iE "$NAME_RE" || true)
+if [[ -n "$BAD_NAMES" ]]; then
+  echo "✗ pre-commit: secret-looking filenames staged:"
+  echo "$BAD_NAMES" | sed 's/^/    /'
+  FAIL=1
+fi
+
+# 2. node_modules never tracked
+NM=$(echo "$STAGED" | grep -E '(^|/)node_modules/' || true)
+if [[ -n "$NM" ]]; then
+  echo "✗ pre-commit: node_modules/ files staged:"
+  echo "$NM" | head -5 | sed 's/^/    /'
+  FAIL=1
+fi
+
+# 3. Content patterns in staged diffs (high-signal secret markers)
+#    - JWT-like tokens starting with the common header
+#    - GitHub PAT prefixes (ghp_, gho_, ghu_, ghs_, ghr_)
+#    - AWS access key id pattern
+DIFF=$(git diff --cached -U0 -- $STAGED 2>/dev/null || true)
+CONTENT_HITS=$(echo "$DIFF" | grep -E '(eyJ[A-Za-z0-9_-]{20,}\.eyJ|gh[porus]_[A-Za-z0-9]{36}|AKIA[0-9A-Z]{16})' || true)
+if [[ -n "$CONTENT_HITS" ]]; then
+  echo "✗ pre-commit: staged content matches secret patterns (JWT / GitHub PAT / AWS key)."
+  echo "  First hits:"
+  echo "$CONTENT_HITS" | head -3 | sed 's/^/    /'
+  FAIL=1
+fi
+
+if [[ $FAIL -ne 0 ]]; then
+  echo
+  echo "  If this is a genuine false positive, bypass with: git commit --no-verify"
+  echo "  Otherwise: remove the file/content, add to .gitignore, and retry."
+  exit 1
+fi
+
+exit 0
