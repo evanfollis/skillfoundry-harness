@@ -16,7 +16,7 @@ Installable Python package that creates and runs Skillfoundry agents against git
 - **Context lineages are append-forward.** Similar to recruiter — don't rewrite history, write new entries.
 
 ## Related Repos
-All under /opt/projects/skillfoundry/:
+All under /opt/workspace/projects/skillfoundry/:
 - `skillfoundry-agents` — Agent registry and coordination
 - `skillfoundry-*-context` — Git-backed context lineages per agent role
 - `skillfoundry-products` — Software artifact output
