@@ -1,6 +1,6 @@
 # CURRENT_STATE — skillfoundry-harness
 
-**Last updated**: 2026-04-17T16-44-08Z — preflight sourceType tick
+**Last updated**: 2026-04-17T20-38Z — agentic inbound tick
 
 ---
 
@@ -10,46 +10,47 @@
 - **Entry**: `src/skillfoundry_harness/` — CLI via `skillfoundry` command (pyproject.toml)
 
 ## What's in progress
-- **Both commercial probes stalled on human action**: probes are running but require Evan to initiate external contact. Agents cannot do this.
-  - Launch Compliance Intelligence: 10 drafts ready, none sent. Evan must send first message.
-  - Launchpad Lint: passive listing, no external interactions. Evan must promote in MCP builder communities.
-- **Preflight probe active through 2026-04-25**: activation metric MET (1 qualifying user on Apr 14), probe continues. Evidence quality: weak.
-- **Preflight now emits `sourceType` (S1-P2 satisfied)**: as of 4907d26, all MCP handler telemetry events carry `sourceType`. Defaults to `"user"`; automated callers self-identify via `X-Source-Type` request header.
+- **Agentic inbound scaffolded**: All 3 probes have persona definitions, landing page content specs, blog queues, video scripts, telemetry channel specs in `skillfoundry-valuation-context/memory/venture/activation/`. None deployed — blocked on Evan's credentials.
+- **Preflight landing page code_landed** (8e9bf50): GET `/` route with full SEO-optimized HTML added to `products/preflight/src/index.ts`. NOT DEPLOYED — requires `wrangler deploy`.
+- **Watcher IGNORE_RE fixed** (8e9bf50): Mozilla/Linux added to IGNORE_RE, sourceType gate added. Service not restarted — needs `systemctl restart preflight-watcher`.
+- **Preflight probe active through 2026-04-25**: activation metric MET (Apr 14 curl/8.5.0). Evidence quality: weak. Post-reclassification: 1 confirmed real user event, 188 Mozilla events correctly excluded.
+- **sourceType code_landed**: still not deployed (4907d26). All telemetry events still lack sourceType field.
 
-## Active probe status (as of 2026-04-17T16-44-08Z)
-- **Launchpad Lint** (`launchpad-lint-agenticmarket-live-listing`): listing live, runtime healthy. No external builder interactions.
-- **Launch Compliance Intelligence** (`launch-compliance-intelligence-manual-offer`): 10 outreach drafts ready. None sent.
-- **Preflight** (`preflight-distribution-signal`): Activation metric MET. Slug IDs aligned as of 2026-04-17T09:16:26Z. Service now emits `sourceType` per S1-P2.
+## Active probe status (as of 2026-04-17T20:38Z)
+- **Launchpad Lint** (`launchpad-lint-agenticmarket-live-listing`): listing live, no external interactions. Activation spec: `memory/venture/activation/launchpad-lint-inbound-activation.md`.
+- **Launch Compliance Intelligence** (`launch-compliance-intelligence-manual-offer`): no product infra. Requires Evan: intake form tool + price + hosting path. Spec: `memory/venture/activation/launch-compliance-intelligence-inbound-activation.md`.
+- **Preflight** (`preflight-distribution-signal`): landing page code_landed, not deployed. 1 confirmed real user. Spec: `memory/venture/activation/preflight-inbound-activation.md`.
 
 ## Known broken or degraded
-- **Tests require the venv**: `python` not available globally; use `.venv/bin/python -m unittest discover tests/` from project root.
-- **Pre-fix slug in evidence raw body**: `2026-04-14-preflight-first-real-user-call.md` body contains `"probeId": "preflight-publish-readiness"` (historical pre-fix value). Canonical `probe_id` header is correct. Annotation needed.
-- **Watcher misclassifying 161/162 sessions as REAL-USER**: all Mozilla/0ms loopback traffic counted as external. Handoff `skillfoundry-valuation-watcher-signal-discrimination-2026-04-17T15-30Z.md` unexecuted — targets `skillfoundry-products` watcher, out of harness boundary for this tick. Needs dedicated tick.
+- **Tests require the venv**: use `.venv/bin/python -m unittest discover tests/` from project root.
+- **wrangler not installed**: cannot deploy preflight from this server. Blocking landing page + sourceType.
+- **fly not installed**: cannot deploy launchpad-lint from this server.
+- **Watcher restart pending**: IGNORE_RE fix is in code but `preflight-watcher.service` not restarted.
+- **latencyMs misunderstood**: `latencyMs` measures server processing time, NOT network round-trip. ADR-0019 latency-floor heuristic is wrong. See evidence reclassification in valuation-context.
+- **Pre-fix slug in evidence raw body**: `2026-04-14-preflight-first-real-user-call.md` raw log emits `probeId: preflight-publish-readiness`. Canonical `probe_id` header is correct. Reclassification note now added to the file.
 
-## Pending handoffs (not executed this tick — boundary/scope blocked)
-- `skillfoundry-valuation-watcher-signal-discrimination-2026-04-17T15-30Z.md`: HIGH priority. Fix watcher classification logic in `skillfoundry-products`. Left in place.
-- `skillfoundry-activate-agentic-inbound-2026-04-17T14-55Z.md`: HIGH priority, large scope. Build landing pages, blog posts, personas for all 3 probes. Spans multiple repos and external systems. Left in place for general session routing.
+## Pending handoffs (in `.handoff/`)
+- `skillfoundry-valuation-watcher-signal-discrimination-2026-04-17T15-30Z.md`: partially executed this tick (IGNORE_RE fix committed), but service restart pending. Watcher investigation complete (see evidence file). This handoff can be deleted — the remaining item (service restart) is noted in general escalation.
+- `general-skillfoundry-agentic-inbound-credential-escalation-2026-04-17T20-38Z.md`: NEW — precise credential blockers table for all 3 probes. Targeted at general session.
 
 ## Recent decisions
 - Six agent roles are fixed (builder, designer, growth, pricing, researcher, valuation)
 - Context lineages are append-forward
 - Keep harness generic — no business-specific ontology in runtime semantics
-- Absence of signal is not typed evidence — record evidence gaps in `memory/findings/`, not `memory/venture/evidence/`
-- Preflight real-user signal (Apr 14) is `external_conversation / weak` evidence — recorded in valuation-context
-- Watcher slug alignment: venture files are the truth source; watcher config conforms to them (not the reverse)
-- Tick sessions that cross repo boundary (valuation-context, products) should note boundary override in completion report — established precedent, not yet formalized
-- S1-P2 (`sourceType`) is now live in preflight: `"user"` default, `X-Source-Type` header override for automated callers
-- 401 tick escalation hook fixed (2026-04-17): `$SUP` was undefined in `supervisor-project-tick.sh` line 195 — the prior hook was dead code (`set -u` would crash before writing the handoff). Fixed to `$WORKSPACE_SUPERVISOR_HANDOFF_INBOX`. Added S1-P2 telemetry emission (`tick.escalated` with `reason:401_auth_failure`) to `runtime/.telemetry/events.jsonl`. Test at `supervisor/tests/test-401-escalation.sh`. Boundary override: supervisor code edited from harness session — carry-forward threshold (3+ cycles) justified urgency.
+- Probe outreach constraint was a design misread: FINRA constraint is on Evan personally, not on agent-operated inbound surfaces (landing pages, content, personas)
+- latencyMs = server processing time, NOT network round-trip — do not use for origin discrimination
+- Mozilla/Linux UA proxy rule: conservative IGNORE_RE interim gate until sourceType deployed
+- Evidence annotation added: reclassification note in 2026-04-14 evidence file (188 Mozilla events → IGNORED)
 
 ## What bit this session
-- Preflight code lives in `skillfoundry-products/products/preflight/`, not in the harness. The handoff referenced `tools/preflight/` which doesn't exist. Required boundary override with noted precedent.
-- No test suite for preflight TypeScript — only typecheck available. No way to verify runtime behavior without deploying.
-- Two high-priority handoffs arrived mid-tick but are out of harness boundary scope. Filed as pending above.
+- No TypeScript test suite for preflight — only typecheck available. Can verify compilation but not runtime behavior.
+- wrangler and fly not installed on server — all deployment blocked on Evan's credentials.
+- Adversarial review blocked: `codex exec` fails with EROFS (read-only file system, FR-0021). Not skipped — attempted and blocked.
+- latencyMs premise in ADR-0019 and the watcher handoff was wrong. Discovered during investigation; corrected in both the fix and the evidence file.
 
 ## What the next agent must read first
 1. Run tests: `.venv/bin/python -m unittest discover -v tests/` from project root
-2. 401 escalation URGENT: write handoff to `supervisor/handoffs/INBOX/` — carry-forward threshold met 3+ cycles
-3. Watcher discrimination: `skillfoundry-valuation-watcher-signal-discrimination-2026-04-17T15-30Z.md` in `.handoff/` — HIGH priority, needs execution
-4. Agentic inbound: `skillfoundry-activate-agentic-inbound-2026-04-17T14-55Z.md` in `.handoff/` — HIGH priority, large scope, general session to route
-5. Evidence annotation needed: `skillfoundry-valuation-context/memory/venture/evidence/2026-04-14-preflight-first-real-user-call.md` — add raw-slug-mismatch note
-6. Preflight service NOT redeployed this tick — `sourceType` change is code_landed but not deployed. Deployment step: `npm run deploy` from `skillfoundry-products/products/preflight/` (runs `wrangler deploy`) or via the project deploy script.
+2. Read `general-skillfoundry-agentic-inbound-credential-escalation-2026-04-17T20-38Z.md` in `.handoff/` — routing needed
+3. Credential gap: Evan must run `wrangler deploy` from products/preflight to land landing page + sourceType
+4. `memory/venture/activation/` in valuation-context — per-probe inbound specs, all code_ready or spec_ready
+5. Watcher handoff (`skillfoundry-valuation-watcher-signal-discrimination-2026-04-17T15-30Z.md`) — can be deleted; work executed, remaining item is service restart (in escalation)
