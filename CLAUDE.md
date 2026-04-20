@@ -14,6 +14,8 @@ Installable Python package that creates and runs Skillfoundry agents against git
 - **Agents operate on git-backed context repos.** Each agent role has its own context lineage. The harness reads `skillfoundry.toml` from each context repo.
 - **Six agent roles are fixed.** Builder, designer, growth, pricing, researcher, valuation. Don't add new roles without explicit discussion.
 - **Context lineages are append-forward.** Similar to recruiter — don't rewrite history, write new entries.
+- **Advisor gate**: Any session that crosses a repo boundary OR edits a running production service source file MUST call `advisor()` before writing code. Evidence: session `4a3fa01e` (2026-04-18) edited CURRENT_STATE across a repo boundary without advisor, produced a false intermediate state, and required 3 commits to correct. Session `cd2879d6` called advisor organically and caught a live dead-code bug in the tick runner.
+- **URL verification before claiming a URL is live or dead**: fetch the URL stated in the most-recent completion report before committing a state claim. Evidence: a session checked `lci.skillfoundry.pages.dev` (DNS fails), concluded "not deployed," committed, then discovered the correct URL is `lci.pages.dev`. Three commits to correct one factual claim.
 
 ## Related Repos
 All under /opt/workspace/projects/skillfoundry/:
