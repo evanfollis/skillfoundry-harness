@@ -8,7 +8,10 @@ version = "0.1.0"
 description = "Harness package for Skillfoundry agents and context repositories"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "jsonschema>=4.20",
+    "referencing>=0.30",
+]
 
 [project.scripts]
 skillfoundry = "skillfoundry_harness.cli:main"
