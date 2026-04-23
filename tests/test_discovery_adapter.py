@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from skillfoundry_harness.discovery_adapter import (
+    AdapterParseError,
     emit_policy_quality_note,
     parse_assumption,
     parse_decision,
@@ -126,7 +127,9 @@ def test_parse_probe_emits_three_events_when_closed(fixtures):
     assert events[1]["methodology_log"]["artifact"]["content_hash"].startswith("sha256:")
 
 
-def test_parse_probe_closed_emits_three_events(fixtures, tmp_path):
+def test_parse_probe_closed_no_decision_kind_emits_two_events(fixtures, tmp_path):
+    # Without a decision_kind, a closed probe emits no closure event.
+    # The Decision envelope records the outcome; L1 has no "killed" phase.
     closed = PROBE_MD.replace(
         "- `ended_at`: `(open)`\n- `status`: `active`",
         "- `ended_at`: `2026-04-20T00:00:00Z`\n- `status`: `closed`",
@@ -134,9 +137,43 @@ def test_parse_probe_closed_emits_three_events(fixtures, tmp_path):
     p = tmp_path / "probe_closed.md"
     p.write_text(closed)
     events = parse_probe(p)
+    assert len(events) == 2
+
+
+def test_parse_probe_closed_with_promote_emits_three_events(fixtures, tmp_path):
+    closed = PROBE_MD.replace(
+        "- `ended_at`: `(open)`\n- `status`: `active`",
+        "- `ended_at`: `2026-04-20T00:00:00Z`\n- `status`: `closed`",
+    )
+    p = tmp_path / "probe_closed_promote.md"
+    p.write_text(closed)
+    events = parse_probe(p, decision_kind="promote")
     assert len(events) == 3
     assert events[-1]["phase_transition"]["from_phase"] == "probe"
     assert events[-1]["phase_transition"]["to_phase"] == "promotion"
+
+
+def test_parse_probe_closed_with_kill_emits_two_events(fixtures, tmp_path):
+    # Killed probe: Decision records the kill; no L1 phase_transition emitted.
+    closed = PROBE_MD.replace(
+        "- `ended_at`: `(open)`\n- `status`: `active`",
+        "- `ended_at`: `2026-04-20T00:00:00Z`\n- `status`: `closed`",
+    )
+    p = tmp_path / "probe_closed_kill.md"
+    p.write_text(closed)
+    events = parse_probe(p, decision_kind="kill")
+    assert len(events) == 2
+
+
+def test_parse_probe_closed_with_pivot_emits_two_events(fixtures, tmp_path):
+    closed = PROBE_MD.replace(
+        "- `ended_at`: `(open)`\n- `status`: `active`",
+        "- `ended_at`: `2026-04-20T00:00:00Z`\n- `status`: `closed`",
+    )
+    p = tmp_path / "probe_closed_pivot.md"
+    p.write_text(closed)
+    events = parse_probe(p, decision_kind="pivot")
+    assert len(events) == 2
 
 
 def test_parse_evidence_polarity_and_tier(fixtures):
@@ -200,3 +237,53 @@ def test_policy_shape():
     assert p["scope"] == "L3:skillfoundry-valuation-context"
     assert "instance_id" not in p  # Policy schema forbids
     assert p["value"]["values"] == ["weak", "moderate", "strong"]
+
+
+# --------------------------------------------------------------------------
+# Finding 2 — unknown enum values must raise AdapterParseError, not coerce
+# --------------------------------------------------------------------------
+
+
+def test_evidence_unknown_tier_raises(tmp_path):
+    bad = EVIDENCE_MD.replace(
+        "- `evidence_class`: `external_conversation`",
+        "- `evidence_class`: `commercial_signal`",
+    )
+    p = tmp_path / "evidence_bad_tier.md"
+    p.write_text(bad)
+    with pytest.raises(AdapterParseError, match="evidence_class"):
+        parse_evidence(p)
+
+
+def test_evidence_unknown_polarity_raises(tmp_path):
+    bad = EVIDENCE_MD.replace(
+        "- `supports`: `supports_assumption`",
+        "- `supports`: `strongly_supports`",
+    )
+    p = tmp_path / "evidence_bad_polarity.md"
+    p.write_text(bad)
+    with pytest.raises(AdapterParseError, match="supports"):
+        parse_evidence(p)
+
+
+def test_decision_unknown_type_raises(tmp_path):
+    bad = DECISION_MD.replace(
+        "- `decision_type`: `tighten`",
+        "- `decision_type`: `approved`",
+    )
+    p = tmp_path / "decision_bad_type.md"
+    p.write_text(bad)
+    with pytest.raises(AdapterParseError, match="decision_type"):
+        parse_decision(p)
+
+
+def test_known_lane_activation_polarity_still_maps(tmp_path):
+    # lane_activation_only is a known alias in _POLARITY_MAP; must not raise.
+    md = EVIDENCE_MD.replace(
+        "- `supports`: `supports_assumption`",
+        "- `supports`: `lane_activation_only`",
+    )
+    p = tmp_path / "evidence_lane.md"
+    p.write_text(md)
+    e = parse_evidence(p)
+    assert e["polarity"] == "neutral"

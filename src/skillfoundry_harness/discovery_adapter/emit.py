@@ -17,6 +17,23 @@ from pathlib import Path
 from typing import Any
 
 
+class AdapterParseError(ValueError):
+    """Raised when a markdown file contains a value the adapter cannot map
+    unambiguously to a canon enum. Callers should log this as a friction
+    event and skip the file rather than emitting a coerced envelope."""
+
+
+def _resolve_enum(raw: str, mapping: dict[str, str],
+                  field_name: str, source: "Path | str") -> str:
+    result = mapping.get(raw)
+    if result is None:
+        raise AdapterParseError(
+            f"{source}: unknown {field_name} value {raw!r}; "
+            f"valid values: {sorted(mapping)}"
+        )
+    return result
+
+
 SPEC_VERSION = "0.1.0"
 EMITTER = "L3:skillfoundry"
 LAYER = "L3"
@@ -213,17 +230,22 @@ def parse_assumption(md_path: Path | str) -> dict[str, Any]:
 # --------------------------------------------------------------------------
 
 
-def parse_probe(md_path: Path | str) -> list[dict[str, Any]]:
+def parse_probe(md_path: Path | str,
+                decision_kind: str | None = None) -> list[dict[str, Any]]:
     """Probe markdown → list of EventLogEntry envelopes.
 
     Emits:
       1. phase_transition (draft → probe) at probe start
       2. methodology_log with ArtifactPointer to the probe markdown
-      3. phase_transition (probe → promotion) if status is 'closed' and the
-         matching Decision has kind in {promote, kill}
+      3. phase_transition (probe → promotion) ONLY when the caller passes
+         decision_kind="promote" for a closed probe
 
-    Returns a list (not single envelope) because a probe emits multiple
-    events.
+    The L1 schema's phase_transition only models three phases: draft, probe,
+    promotion. Killed/pivoted/closed probes do not get a closure event — the
+    Decision envelope itself records the outcome. Passing decision_kind for a
+    non-promote close therefore emits nothing extra.
+
+    Returns a list (not single envelope) because a probe emits multiple events.
     """
     md_path = Path(md_path)
     header = parse_header(md_path.read_text())
@@ -265,9 +287,9 @@ def parse_probe(md_path: Path | str) -> list[dict[str, Any]]:
     }
     events.append(ml)
 
-    # 3. (Optional) phase_transition probe → promotion on probe close
+    # 3. phase_transition probe → promotion, only when caller confirms promote
     status = header.get("status")
-    if status == "closed" and ended:
+    if status == "closed" and ended and decision_kind == "promote":
         pt2 = _common_envelope(
             "EventLogEntry", f"pt-{probe_id}-probe-promotion", ended, ended,
         )
@@ -301,10 +323,12 @@ _POLARITY_MAP = {
     "supports_assumption": "supports",
     "contradicts_assumption": "contradicts",
     "neutral": "neutral",
-    # Looser values observed in real files:
+    # Looser values observed in real files — all map to neutral because they
+    # describe probe readiness/activation rather than assumption polarity.
     "lane_activation_only": "neutral",
     "lane_activation": "neutral",
     "activation_only": "neutral",
+    "operational_readiness_only": "neutral",
 }
 
 
@@ -325,10 +349,10 @@ def parse_evidence(md_path: Path | str) -> dict[str, Any]:
     envelope["evidence_type"] = header.get("source_type", "unspecified")
 
     tier_raw = header["evidence_class"]
-    envelope["tier"] = _TIER_ALIASES.get(tier_raw, "internal_operational")
+    envelope["tier"] = _resolve_enum(tier_raw, _TIER_ALIASES, "evidence_class", md_path)
 
     supports_raw = header.get("supports", "neutral")
-    envelope["polarity"] = _POLARITY_MAP.get(supports_raw, "neutral")
+    envelope["polarity"] = _resolve_enum(supports_raw, _POLARITY_MAP, "supports", md_path)
     envelope["observed_at"] = emitted
     envelope["artifact"] = _artifact_pointer(md_path)
     return envelope
@@ -367,7 +391,7 @@ def parse_decision(md_path: Path | str) -> dict[str, Any]:
 
     emitted = _iso(header["timestamp"])
     decision_type_raw = header["decision_type"]
-    kind = _DECISION_KIND_MAP.get(decision_type_raw, "continue")
+    kind = _resolve_enum(decision_type_raw, _DECISION_KIND_MAP, "decision_type", md_path)
 
     envelope = _common_envelope(
         "Decision", header["decision_id"], emitted, emitted,

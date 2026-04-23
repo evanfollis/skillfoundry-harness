@@ -27,10 +27,12 @@ from pathlib import Path
 
 from skillfoundry_harness.discovery_adapter.emit import (
     QUALITY_POLICY_ID,
+    _DECISION_KIND_MAP,
     emit_policy_quality_note,
     parse_assumption,
     parse_decision,
     parse_evidence,
+    parse_header,
     parse_probe,
 )
 
@@ -108,6 +110,22 @@ def migrate(venture_root: Path, schema_dir: Path, dry_run: bool) -> int:
     counts = {"claims": [0, 0], "evidence": [0, 0],
               "decisions": [0, 0], "events": [0, 0], "policies": [0, 0]}
 
+    # Pre-pass: build probe_id → decision_kind map from decision headers.
+    # Used so parse_probe() only emits the probe→promotion closure event when
+    # the matching Decision has kind=="promote". Headers-only read, non-fatal.
+    decision_kind_for_probe: dict[str, str] = {}
+    for dp in sorted((memory_venture / "decisions").glob("*.md")):
+        if dp.name.upper() == "README.MD" or dp.name.startswith("TEMPLATE"):
+            continue
+        try:
+            dh = parse_header(dp.read_text())
+            pid = dh.get("probe_id")
+            dt_raw = dh.get("decision_type", "")
+            if pid and dt_raw:
+                decision_kind_for_probe[pid] = _DECISION_KIND_MAP.get(dt_raw, "")
+        except Exception:
+            pass  # non-fatal; the main decisions pass will report the error
+
     # 1) Policy (quality-note)
     pol = emit_policy_quality_note()
     errs = _validate(pol, validators, "Policy")
@@ -143,7 +161,11 @@ def migrate(venture_root: Path, schema_dir: Path, dry_run: bool) -> int:
         if p.name.upper() == "README.MD" or p.name.startswith("TEMPLATE"):
             continue
         try:
-            events = parse_probe(p)
+            # Look up the matching Decision kind so parse_probe only emits
+            # the probe→promotion event for actual promote decisions.
+            ph = parse_header(p.read_text())
+            dk = decision_kind_for_probe.get(ph.get("probe_id", ""))
+            events = parse_probe(p, decision_kind=dk)
         except Exception as exc:
             counts["events"][1] += 1
             print(f"[PROBE-PARSE] {p.name}: {exc}", file=sys.stderr)
