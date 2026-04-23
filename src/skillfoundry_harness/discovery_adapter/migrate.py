@@ -112,7 +112,10 @@ def migrate(venture_root: Path, schema_dir: Path, dry_run: bool) -> int:
 
     # Pre-pass: build probe_id → decision_kind map from decision headers.
     # Used so parse_probe() only emits the probe→promotion closure event when
-    # the matching Decision has kind=="promote". Headers-only read, non-fatal.
+    # the matching Decision has kind=="promote". If a decision header can't
+    # be parsed, surface it loudly — otherwise the probe silently loses its
+    # closure edge in canon and the backfill succeeds with a missing lifecycle
+    # event (post-fix review Finding B).
     decision_kind_for_probe: dict[str, str] = {}
     for dp in sorted((memory_venture / "decisions").glob("*.md")):
         if dp.name.upper() == "README.MD" or dp.name.startswith("TEMPLATE"):
@@ -123,8 +126,14 @@ def migrate(venture_root: Path, schema_dir: Path, dry_run: bool) -> int:
             dt_raw = dh.get("decision_type", "")
             if pid and dt_raw:
                 decision_kind_for_probe[pid] = _DECISION_KIND_MAP.get(dt_raw, "")
-        except Exception:
-            pass  # non-fatal; the main decisions pass will report the error
+        except Exception as exc:
+            counts["decisions"][1] += 1
+            print(
+                f"[PREPASS-DECISION] {dp.name}: {exc} — probe closure edge "
+                f"for this file's probe_id will not be emitted until source "
+                f"is fixed and migrate is re-run",
+                file=sys.stderr,
+            )
 
     # 1) Policy (quality-note)
     pol = emit_policy_quality_note()

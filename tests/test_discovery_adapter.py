@@ -287,3 +287,53 @@ def test_known_lane_activation_polarity_still_maps(tmp_path):
     p.write_text(md)
     e = parse_evidence(p)
     assert e["polarity"] == "neutral"
+
+
+# --------------------------------------------------------------------------
+# Post-review Finding B — migrate.py pre-pass must not swallow decision
+# header parse failures silently.
+# --------------------------------------------------------------------------
+
+
+def test_migrate_prepass_surfaces_bad_decision_header(
+    tmp_path, capsys, monkeypatch
+):
+    from skillfoundry_harness.discovery_adapter import migrate as migrate_mod
+    from skillfoundry_harness.discovery_adapter.migrate import (
+        DEFAULT_SCHEMA_DIR,
+        migrate,
+    )
+
+    venture = tmp_path / "venture"
+    mv = venture / "memory" / "venture"
+    for sub in ("assumptions", "probes", "evidence", "decisions"):
+        (mv / sub).mkdir(parents=True)
+    (mv / "assumptions" / "demo.md").write_text(ASSUMPTION_MD)
+    (mv / "probes" / "demo-probe.md").write_text(PROBE_MD)
+    (mv / "evidence" / "2026-04-12-first-external-reply.md").write_text(
+        EVIDENCE_MD
+    )
+    (mv / "decisions" / "2026-04-13-bad.md").write_text(DECISION_MD)
+
+    # Simulate a parse_header failure on the decision file during the pre-pass
+    # (rare but real class of error: encoding issues, mid-file read corruption,
+    # or a future header-format migration that raises on legacy files).
+    real_parse_header = migrate_mod.parse_header
+
+    def flaky_parse_header(text):
+        if text.startswith("# Decision:"):
+            raise ValueError("simulated header parse failure")
+        return real_parse_header(text)
+
+    monkeypatch.setattr(migrate_mod, "parse_header", flaky_parse_header)
+
+    rc = migrate(venture, DEFAULT_SCHEMA_DIR, dry_run=True)
+
+    err = capsys.readouterr().err
+    assert "[PREPASS-DECISION]" in err, (
+        "pre-pass must surface bad decision header on stderr; silent skip was "
+        "post-review Finding B"
+    )
+    assert "2026-04-13-bad.md" in err
+    assert "probe closure edge" in err  # loss-of-edge framing preserved
+    assert rc != 0
