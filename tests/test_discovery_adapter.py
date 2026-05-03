@@ -9,6 +9,7 @@ these tests are lighter-weight shape checks.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -337,3 +338,77 @@ def test_migrate_prepass_surfaces_bad_decision_header(
     assert "2026-04-13-bad.md" in err
     assert "probe closure edge" in err  # loss-of-edge framing preserved
     assert rc != 0
+
+
+# --------------------------------------------------------------------------
+# Workspace compliance: migrate must emit one structured telemetry event
+# per run (CLAUDE.md S1-P2). Cycle-12 carry-forward — fix in 2026-05-03.
+# --------------------------------------------------------------------------
+
+
+def test_migrate_emits_telemetry_event_per_run(tmp_path, monkeypatch):
+    from skillfoundry_harness.discovery_adapter import migrate as migrate_mod
+    from skillfoundry_harness.discovery_adapter.migrate import (
+        DEFAULT_SCHEMA_DIR,
+        migrate,
+    )
+
+    venture = tmp_path / "venture"
+    mv = venture / "memory" / "venture"
+    for sub in ("assumptions", "probes", "evidence", "decisions"):
+        (mv / sub).mkdir(parents=True)
+    (mv / "assumptions" / "demo.md").write_text(ASSUMPTION_MD)
+    (mv / "probes" / "demo-probe.md").write_text(PROBE_MD)
+    (mv / "evidence" / "2026-04-12-first-external-reply.md").write_text(
+        EVIDENCE_MD
+    )
+    (mv / "decisions" / "2026-04-13-good.md").write_text(DECISION_MD)
+
+    sink = tmp_path / "events.jsonl"
+    monkeypatch.setattr(migrate_mod, "TELEMETRY_PATH", sink)
+
+    rc = migrate(venture, DEFAULT_SCHEMA_DIR, dry_run=True, source_type="cron")
+    assert rc == 0
+
+    assert sink.exists(), "telemetry sink file must be created on success"
+    lines = sink.read_text().strip().splitlines()
+    assert len(lines) == 1, f"exactly one event per migrate run, got {len(lines)}"
+    ev = json.loads(lines[0])
+
+    # Required workspace shape (CLAUDE.md S1-P2).
+    for key in ("project", "source", "eventType", "level", "timestamp", "sourceType"):
+        assert key in ev, f"telemetry missing required field: {key}"
+
+    assert ev["project"] == "skillfoundry-harness"
+    assert ev["source"] == "skillfoundry_harness.discovery_adapter.migrate"
+    assert ev["sourceType"] == "cron"
+    assert ev["level"] == "info"
+    assert ev["eventType"] == "migrate.success"
+    assert isinstance(ev["timestamp"], int)  # epoch milliseconds, not ISO string
+    assert ev["details"]["dry_run"] is True
+    assert ev["details"]["counts"]["claims"]["ok"] == 1
+    assert ev["details"]["total_bad"] == 0
+
+
+def test_migrate_emits_failure_telemetry_when_venture_missing(
+    tmp_path, monkeypatch, capsys
+):
+    from skillfoundry_harness.discovery_adapter import migrate as migrate_mod
+    from skillfoundry_harness.discovery_adapter.migrate import (
+        DEFAULT_SCHEMA_DIR,
+        migrate,
+    )
+
+    sink = tmp_path / "events.jsonl"
+    monkeypatch.setattr(migrate_mod, "TELEMETRY_PATH", sink)
+
+    rc = migrate(tmp_path / "no-venture-here", DEFAULT_SCHEMA_DIR, dry_run=True)
+    capsys.readouterr()  # drain the "no memory/venture" message
+    assert rc == 2
+
+    lines = sink.read_text().strip().splitlines()
+    assert len(lines) == 1
+    ev = json.loads(lines[0])
+    assert ev["eventType"] == "migrate.failure"
+    assert ev["level"] == "error"
+    assert "memory/venture not found" in ev["details"]["error"]

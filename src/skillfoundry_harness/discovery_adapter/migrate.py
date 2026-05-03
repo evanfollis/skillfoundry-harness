@@ -21,8 +21,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import traceback
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 from skillfoundry_harness.discovery_adapter.emit import (
@@ -40,6 +43,48 @@ from skillfoundry_harness.discovery_adapter.emit import (
 DEFAULT_SCHEMA_DIR = Path(
     "/opt/workspace/projects/context-repository/spec/discovery-framework/schemas"
 )
+
+# Workspace-shared telemetry sink. Override via env for tests / non-default workspaces.
+TELEMETRY_PATH = Path(
+    os.environ.get(
+        "SKILLFOUNDRY_TELEMETRY_PATH",
+        "/opt/workspace/runtime/.telemetry/events.jsonl",
+    )
+)
+
+
+def _emit_telemetry(
+    event_type: str,
+    level: str,
+    source_type: str,
+    details: dict | None = None,
+) -> None:
+    """Append one event to the shared workspace telemetry stream.
+
+    Schema follows workspace CLAUDE.md / S1-P2: `{ project, source,
+    eventType, level, timestamp, sourceType, ... }`. Failures to write
+    telemetry are non-fatal — print to stderr and continue.
+    """
+    event = {
+        "project": "skillfoundry-harness",
+        "source": "skillfoundry_harness.discovery_adapter.migrate",
+        "eventType": event_type,
+        "level": level,
+        "sourceType": source_type,
+        "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
+        "id": str(uuid.uuid4()),
+    }
+    if details:
+        event["details"] = details
+    try:
+        TELEMETRY_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(TELEMETRY_PATH, "a") as f:
+            f.write(json.dumps(event, default=str) + "\n")
+    except Exception as exc:  # pragma: no cover - non-fatal best-effort sink
+        print(
+            f"[TELEMETRY] failed to write {event_type}: {exc}",
+            file=sys.stderr,
+        )
 
 
 def _load_schema_registry(schema_dir: Path):
@@ -97,11 +142,26 @@ def _canon_dir(venture_root: Path) -> Path:
     return d
 
 
-def migrate(venture_root: Path, schema_dir: Path, dry_run: bool) -> int:
+def migrate(
+    venture_root: Path,
+    schema_dir: Path,
+    dry_run: bool,
+    source_type: str = "user",
+) -> int:
     venture_root = Path(venture_root)
     memory_venture = venture_root / "memory" / "venture"
     if not memory_venture.is_dir():
         print(f"no memory/venture/ under {venture_root}", file=sys.stderr)
+        _emit_telemetry(
+            "migrate.failure",
+            level="error",
+            source_type=source_type,
+            details={
+                "venture_root": str(venture_root),
+                "error": "memory/venture not found",
+                "dry_run": dry_run,
+            },
+        )
         return 2
 
     canon_root = _canon_dir(venture_root)
@@ -232,6 +292,19 @@ def migrate(venture_root: Path, schema_dir: Path, dry_run: bool) -> int:
         f"{k}: {v[0]} ok / {v[1]} bad" for k, v in counts.items()
     )
     print(f"[{mode}] {parts}")
+    _emit_telemetry(
+        "migrate.failure" if total_bad else "migrate.success",
+        level="error" if total_bad else "info",
+        source_type=source_type,
+        details={
+            "venture_root": str(venture_root),
+            "dry_run": dry_run,
+            "counts": {
+                k: {"ok": v[0], "bad": v[1]} for k, v in counts.items()
+            },
+            "total_bad": total_bad,
+        },
+    )
     return 0 if total_bad == 0 else 1
 
 
@@ -245,12 +318,30 @@ def main() -> int:
     )
     ap.add_argument("--schemas", type=Path, default=DEFAULT_SCHEMA_DIR)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument(
+        "--source-type",
+        choices=("user", "system", "smoke", "cron"),
+        default="user",
+        help="sourceType field for the telemetry event emitted by this run.",
+    )
     args = ap.parse_args()
 
     try:
-        return migrate(args.venture, args.schemas, args.dry_run)
-    except Exception:
+        return migrate(
+            args.venture, args.schemas, args.dry_run, source_type=args.source_type
+        )
+    except Exception as exc:
         traceback.print_exc()
+        _emit_telemetry(
+            "migrate.failure",
+            level="error",
+            source_type=args.source_type,
+            details={
+                "venture_root": str(args.venture),
+                "dry_run": args.dry_run,
+                "error": f"{type(exc).__name__}: {exc}",
+            },
+        )
         return 2
 
 
