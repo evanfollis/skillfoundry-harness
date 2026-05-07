@@ -7,14 +7,26 @@ Canon spec: **0.1.0** (`/opt/workspace/projects/context-repository/spec/discover
 
 ## Object mappings
 
-### CriticalAssumption → Claim
+### CriticalAssumption → Claim (LOSSY)
 
-Skillfoundry assumptions carry three component claims
-(`problem_claim`, `economic_claim`, `channel_claim`). Canon Claim has a
-single `statement`. Mapping: **statement = problem_claim** (the falsifiable
-commercial claim). The other two are preserved in the markdown artifact via
-hash-bound ArtifactPointer — downstream consumers who need the full buyer
-story re-parse the markdown.
+Skillfoundry assumptions carry **three** semantic axes — `problem_claim`,
+`economic_claim`, `channel_claim` — each independently falsifiable.
+The current adapter emits **one** canon `Claim` per CriticalAssumption,
+using `problem_claim` as `statement`. **The other two axes are silently
+dropped from canon.**
+
+This is canonically lossy by design choice, not by accident:
+
+- Downstream consumers reading canon alone see only the problem axis.
+- Decisions and Evidence linking to the canon Claim anchor on partial thesis.
+- Cross-pod reasoning (atlas-ingest-canon, future agent-addressable surface)
+  must re-parse the markdown artifact to recover `economic_claim` and
+  `channel_claim`.
+
+**Migration target**: Option 1 (3 envelopes per CriticalAssumption, joined
+by `id` prefix `<assumption_id>:problem|economic|channel`) is the chosen
+medium-term shape. See `context-repository/docs/canon-3claims-per-assumption-verdict.md`
+for the migration spec.
 
 | Markdown key | Canon Claim field | Transform |
 |---|---|---|
