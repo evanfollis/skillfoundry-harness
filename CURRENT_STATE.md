@@ -1,12 +1,12 @@
 # CURRENT_STATE — skillfoundry-harness
 
-**Last updated**: 2026-05-01T02-29-18Z — reflection pass
+**Last updated**: 2026-05-06T14-20-45Z — reflection pass
 
 ---
 
 ## Deployed / running state
 - **Type**: multi-agent harness for building products (Python)
-- **Runtime**: tested — 59/59 tests pass via `.venv/bin/python -m pytest tests/`
+- **Runtime**: tested — 61/61 tests pass via `.venv/bin/python -m pytest tests/` (`8fcf2d1` added conftest.py telemetry isolation)
 - **Entry**: `src/skillfoundry_harness/` — CLI via `skillfoundry` command (pyproject.toml)
 
 ## What's in progress
@@ -47,15 +47,16 @@ Backfill re-run on valuation-context:
 - **fly not installed**: cannot deploy launchpad-lint from this server. Render deploy on separate track.
 - **LCI Tally form needed**: Landing page is LIVE at `lci.pages.dev` but shows "Intake form loading shortly." Evan must: (1) create Tally form at tally.so, (2) return embed code → swap `<!-- TALLY_EMBED -->` in `products/lci/index.html`, (3) agent runs `CLOUDFLARE_API_TOKEN=$(cat /root/.cloudflare-token) WRANGLER_HOME=/tmp/wrangler-home npm --cache /tmp/npm-cache exec --yes wrangler -- pages deploy products/lci --project-name lci --commit-dirty=true`.
 - **latencyMs misunderstood**: `latencyMs` measures server processing time, NOT network round-trip. ADR-0019 latency-floor heuristic is wrong. See evidence reclassification in valuation-context.
-- **EROFS structural blocker for tick adversarial review**: `adversarial-review.sh` fails in tick/unattended sessions with `Failed to initialize session: Read-only file system (os error 30)`. Four reflection cycles; root cause uncharacterized. Attended sessions succeed. URGENT handoff proposed. Until resolved, every tick session ships without adversarial pressure.
-- **Finding A (3 claims) unanchored at context-repo**: proposal doc committed in `664aba5` but no handoff written to context-repo session. Without an explicit handoff, the proposal will sit. Reflection P3: write `context-repo-canon-3claims-per-assumption-2026-04-24.md` handoff.
+- **EROFS / codex-not-installed scope expanded [CRITICAL, cycle 14]**: `adversarial-review.sh` fails with "codex not installed" in both unattended tick sessions AND attended sessions (session `65447b9d` 2026-05-04 03:34Z was Evan-initiated and still hit this). Fourteen consecutive reflection cycles without adversarial review. Root cause undiagnosed. No attended diagnosis has been attempted.
+- **Finding A (3 claims) unanchored at context-repo**: proposal doc committed in `664aba5` but no handoff written to context-repo session. 14+ days deferred.
 - **preflight-distribution-signal.md non-canonical**: probe file uses prose/bold format, excluded from migration runs. Now emits explicit friction error to stderr. Source file needs reformat into canonical backtick key-value format.
-- **migrate.py emits no telemetry**: 8 reflection cycles flagged this. Workspace rule requires structured telemetry for active runtime systems. No audit trail for migration runs. P2 proposal: 1 jsonl append per run with `{ project, source, eventType, level, timestamp, sourceType, counts }`. Carry-forward escalation threshold (3 cycles) exceeded — needs owner.
+- **CURRENT_STATE.md uncommitted [cycle 14]**: on-disk version diverges from HEAD. Cold-start sessions read HEAD; stale as of 2026-05-05T02:21Z. URGENT queue items consuming this list for 4+ cycles.
 
 ## Pending handoffs (in `.handoff/`)
 - `general-skillfoundry-tally-form-needed-2026-04-18.md`: LCI deploy blocked on Tally form creation. Evan ~5 min manual step.
 - `general-skillfoundry-agentic-inbound-root-scope-complete-2026-04-24T12-50Z.md`: completion report from root-scope verification session — all reversible work done, credential blockers remain.
 - `general-skillfoundry-valuation-evidence-supports-fix-complete-2026-04-24T12-35Z.md`: confirmation that valuation polarity fix was already done at `39e5778`.
+- `general-skillfoundry-synthesis-test-telemetry-isolation-conftest-complete-2026-05-04T15-10Z.md`: conftest fix completion report — telemetry isolation shipped at `8fcf2d1`, adversarial review deferred.
 
 ## Recent decisions
 - Six agent roles are fixed (builder, designer, growth, pricing, researcher, valuation)
@@ -67,17 +68,18 @@ Backfill re-run on valuation-context:
 - **CLAUDE.md rules landed (2026-04-20)**: advisor-gate and URL-verification rules added verbatim
 - **pyproject.toml declared (2026-04-21)**: `jsonschema>=4.20` and `referencing>=0.30` — only 2 deps
 - **Valuation evidence polarity (39e5778 2026-04-23)**: `weakens_assumption` → `contradicts_assumption`; "weakens not falsifies" nuance preserved in narrative body; schema gap routed to context-repo
+- **migrate.py telemetry wired (531946f, 2026-05-03)**: 12-cycle URGENT resolved. `_emit_telemetry` emits S1-P2 events per run (success + all failure paths). `--source-type` CLI flag for cron self-classification. Tests: 61/61.
+- **Test telemetry isolation (8fcf2d1, 2026-05-04)**: conftest.py autouse fixture (synthesis Proposal 5b). Two-layer fix: env var + module-level constant (`migrate.TELEMETRY_PATH`). Env-var-only was confirmed insufficient (import-time binding). 61/61. No-pollution check verified.
 
-## What bit recent sessions (reflection 2026-05-01T02-29-18Z)
-- **EROFS blocks adversarial gate**: four consecutive reflection cycles. Every unattended session ships without adversarial pressure. Diagnosis proposed (mount/findmnt in tick context) but never executed.
-- **CURRENT_STATE.md uncommitted for 7 days**: Apr 24 reflection updated it but no session committed it. Cold-start agents see 2026-04-23 tick state. Add hook or first-task rule to commit CURRENT_STATE.md after reflection writes.
-- **Harness session idle**: session 42e3727c-f12d-45f3-90dd-0d6cb9abf327 received 3 handoff dispatcher messages Apr 30 but consumed no work — session may be waiting for human prompt. Pending handoffs (agentic-inbound, valuation-evidence-fix) are for `general` not `skillfoundry` — may have been dispatched in error.
-- **migrate.py telemetry at 8 cycles**: workspace carry-forward escalation gate should have filed URGENT at cycle 3; either misfired or suppressed. Verify LATEST_SYNTHESIS.
+## What bit recent sessions (reflection 2026-05-06T14-20-45Z)
+- **No human-initiated sessions this window** (02:23Z–14:20Z): only automated reflection sessions. No new bugs, no new fixes.
+- **Write-tool bypass still unpatched (cycle 15)**: `URGENT-reflect-sh-write-bypass-2026-05-03T15-23Z.md` is now 84h old. Fix is one line in `reflect.sh:112`. Exploit confirmed live in supervisor repo; continues to apply every 12h.
+- **URGENT queue all FR-class (cycle 15)**: `URGENT-reflect-sh-write-bypass` (84h+), `URGENT-supervisor-reflection-mutated-head` (83h+), `URGENT-supervisor-reflection-dirty-tree` (12h). None consumed.
+- **Carry-forward items FR-class (cycle 15)**: EROFS/codex and CURRENT_STATE uncommitted both 15 cycles without fix, decision, or verified pointer.
 
 ## What the next agent must read first
-1. **EROFS root cause** [CRITICAL, unblocks adversarial gate]: four cycles unresolved. Run `mount | grep -E ro` and `findmnt -R /root` in a tick-equivalent context. Compare to attended session environment. Without this, adversarial gate is structurally bypassed for all unattended sessions.
-2. **Commit CURRENT_STATE.md** [HIGH, immediate]: `git add CURRENT_STATE.md && git commit -m "Update CURRENT_STATE: post-review-triage state, reflection 2026-04-24"` — been uncommitted since 2026-04-24T14:22Z.
-3. **migrate.py telemetry** [HIGH, 8-cycle carry-forward]: workspace rule violation, escalation threshold met at cycle 3. Implement `{ project, source, eventType, level, timestamp, sourceType, counts }` append per run. No owner assigned.
-4. **Finding A handoff to context-repo**: write `runtime/.handoff/context-repo-canon-3claims-per-assumption.md` — proposal doc at `docs/claims-per-assumption-options.md`. Harness preference: Option 1 > 3 > 2.
-5. **ADR pure-parse-interface**: change status to `deferred-indefinite` or add a milestone condition. "Pending scheduling" with no schedule is misleading.
-6. **preflight-distribution-signal.md reformat**: probe file uses prose/bold format; excluded from migration runs. Reformat to canonical backtick key-value to clear friction error.
+1. **reflect.sh Write patch** [CRITICAL, 84h+]: `URGENT-reflect-sh-write-bypass-2026-05-03T15-23Z.md`. Fix: `reflect.sh:112` — add `"Write"` to `--disallowedTools`. Mark URGENT `.done` after applying.
+2. **EROFS / codex root cause** [CRITICAL, cycle 15]: Run `which codex` in attended session. 15 cycles of adversarial review missing. If absent: document decision to use Claude-based `/review` fallback in `supervisor/decisions/`.
+3. **Commit CURRENT_STATE.md** [HIGH, immediate]: `git add CURRENT_STATE.md && git commit -m "Update CURRENT_STATE: reflection cycle 15"` — unstaged for 15+ consecutive windows.
+4. **Triage URGENT queue**: Read `URGENT-supervisor-reflection-mutated-head.md` + `URGENT-supervisor-reflection-dirty-tree.md`. If deprioritizing, record decision in `supervisor/decisions/`.
+5. **Finding A handoff to context-repo**: write `runtime/.handoff/context-repo-canon-3claims-per-assumption-2026-05-06.md` — 14+ days deferred, proposal doc at `docs/claims-per-assumption-options.md`.
