@@ -1,10 +1,16 @@
 # Proposal: 3 Claims per Assumption — spec pressure-test
 
-**Status**: routed to context-repo spec review
+**Status**: resolved by context-repo spec authority — see Resolution.
 **Date**: 2026-04-23
 **Author**: skillfoundry session, 65447b9d-3cb7-4584-bcf2-c058fd025791
 **Review artifact**: `supervisor/.reviews/discovery-adapter-2f63ae5-post-fix-2026-04-23T17-59Z.md` Finding A
 **Prior routing pattern**: `runtime/.handoff/context-repo-canon-schema-weakens-assumption-2026-04-23T18-45Z.md`
+
+> **Resolution**: see `context-repository/docs/canon-3claims-per-assumption-verdict.md`
+> for the spec-authority verdict (commit context-repo/1fcf0ad). Two-step path:
+> Step 1 shipped 2026-05-07 (skillfoundry-harness commit `81ea5b5` — MAPPING.md
+> partial-drop made explicit, migration target named); Step 2 (Option 1
+> implementation) awaits principal verdict on the verdict's open questions.
 
 ---
 
