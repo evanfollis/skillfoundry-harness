@@ -1,6 +1,6 @@
 # CURRENT_STATE — skillfoundry-harness
 
-**Last updated**: 2026-05-13T14-19-48Z — reflection pass (cycle 28)
+**Last updated**: 2026-05-15T02-20-02Z — reflection pass (cycle 31)
 
 ---
 
@@ -47,11 +47,11 @@ Backfill re-run on valuation-context:
 - **fly not installed**: cannot deploy launchpad-lint from this server. Render deploy on separate track.
 - **LCI Tally form needed**: Landing page is LIVE at `lci.pages.dev` but shows "Intake form loading shortly." Evan must: (1) create Tally form at tally.so, (2) return embed code → swap `<!-- TALLY_EMBED -->` in `products/lci/index.html`, (3) agent runs `CLOUDFLARE_API_TOKEN=$(cat /root/.cloudflare-token) WRANGLER_HOME=/tmp/wrangler-home npm --cache /tmp/npm-cache exec --yes wrangler -- pages deploy products/lci --project-name lci --commit-dirty=true`.
 - **latencyMs misunderstood**: `latencyMs` measures server processing time, NOT network round-trip. ADR-0019 latency-floor heuristic is wrong. See evidence reclassification in valuation-context.
-- **adversarial-review.sh PATH bug [CRITICAL, ~119h+, 71h PAST structural-blocker threshold]**: Codex IS installed at `/root/.nvm/versions/node/v22.22.0/bin/codex` (codex-cli 0.128.0). `adversarial-review.sh:42` fails because the unattended PATH omits NVM bin. Fix: Option B lookup chain in `adversarial-review.sh`. URGENT filed to executive: `URGENT-general-adversarial-review-path-fix-supervisor-2026-05-09T15-30Z.md`. Session 65447b9d proved the fix (ran real Codex review, 32,028 tokens). Crossed 48h structural-blocker threshold this window.
+- **adversarial-review.sh PATH bug [CRITICAL, ~180h+, ~132h PAST structural-blocker threshold]**: Codex IS installed at `/root/.nvm/versions/node/v22.22.0/bin/codex` (codex-cli 0.128.0). `adversarial-review.sh:42` fails because the unattended PATH omits NVM bin. Fix: Option B lookup chain in `adversarial-review.sh`. URGENT filed to executive: `URGENT-general-adversarial-review-path-fix-supervisor-2026-05-09T15-30Z.md`. Session 65447b9d proved the fix (ran real Codex review, 32,028 tokens). 6 days past 48h structural-blocker threshold.
 - **preflight-distribution-signal.md non-canonical**: probe file uses prose/bold format, excluded from migration runs. Emits explicit friction error to stderr. Source file needs reformat into canonical backtick key-value format — or a decision to leave it non-canonical must be documented. 14 cycles unresolved.
-- **reflect.sh Write bypass unpatched [CRITICAL, ~277h+, TWO handoffs unconsumed since May 3 + May 12]**: Three confirmed exploitations: project repos (May 2, May 6) + supervisor HEAD advance (May 6 14:22Z, `2bdfdaf1`). `general-reflect-sh-write-bypass-fix-2026-05-12T04-49Z.md` written to `runtime/.handoff/` on May 12 04:49Z — 21h stale, no `.done`. Fix: one line in `supervisor/scripts/lib/reflect.sh:112` — add `"Write"` to `--disallowedTools`. Executive scope.
-- **CURRENT_STATE.md HEAD/disk gap [STRUCTURAL, 12 cycles]**: Each reflection writes CURRENT_STATE.md but cannot commit. HEAD remains at cycle 15 (`3798d7d`, 2026-05-06T14:20:45Z). Disk now shows cycle 28. Cold-start sessions using `git show HEAD:CURRENT_STATE.md` get stale data. `general-reflect-sh-current-state-autocommit-2026-05-12T04-49Z.md` in `runtime/.handoff/` since May 12 04:49Z, unconsumed. Batch fix with reflect.sh Write bypass.
-- **conftest.py Finding 2 [NEGLECTED COMMITMENT, 8 cycles]**: `tests/conftest.py:52` — `except Exception:` should be narrowed to `except (ImportError, ModuleNotFoundError):`. Called "safe to fix immediately, no ADR" since cycle 21. Still unactioned as of cycle 28. No dependency, no review required. Fix in next attended session before any other work.
+- **reflect.sh Write bypass unpatched [CRITICAL, ~300h+, TWO handoffs unconsumed since May 3 + May 12]**: Three confirmed exploitations: project repos (May 2, May 6) + supervisor HEAD advance (May 6 14:22Z, `2bdfdaf1`). `URGENT-reflect-sh-write-bypass-2026-05-03T15-23Z.md` (11 days old) and `general-reflect-sh-write-bypass-fix-2026-05-12T04-49Z.md` (~46h old), both no `.done`. Fix: one line in `supervisor/scripts/lib/reflect.sh:112` — add `"Write"` to `--disallowedTools`. Executive scope.
+- **CURRENT_STATE.md HEAD/disk gap [RESOLVED 2026-05-13T15:37Z]**: Closed by `8193a3a`. Discipline rule landed in `8127dec` (CLAUDE.md). Cold-start gap eliminated. Monitor for recurrence if next session skips the commit discipline rule.
+- **conftest.py Finding 2 [URGENT — 11 cycles, ESCALATED cycle 31]**: `tests/conftest.py:52` — `except Exception:` should be narrowed to `except (ImportError, ModuleNotFoundError):`. Called "safe to fix immediately, no ADR" since cycle 21. Unactioned through cycle 31. Cycle 30 committed to escalating if cycle 31 saw it still open — condition met. No dependency, no review required. Fix immediately in next attended session before any other work.
 
 ## Pending handoffs (in `.handoff/`)
 - `general-skillfoundry-tally-form-needed-2026-04-18.md`: LCI deploy blocked on Tally form creation. Evan ~5 min manual step.
@@ -74,17 +74,18 @@ Backfill re-run on valuation-context:
 - **Test telemetry isolation (8fcf2d1, 2026-05-04)**: conftest.py autouse fixture (synthesis Proposal 5b). Two-layer fix: env var + module-level constant (`migrate.TELEMETRY_PATH`). Env-var-only was confirmed insufficient (import-time binding). 61/61. No-pollution check verified.
 - **Finding A (3 claims) Step 1 (81ea5b5, 2026-05-07)**: context-repo spec authority verdict applied. MAPPING.md now explicitly names partial-thesis collapse as "LOSSY by design choice." Migration target: Option 1 (id-prefix `<assumption_id>:problem|economic|channel`). Step 2 on hold pending principal verdict.
 
-## What bit recent sessions (reflection 2026-05-13T14-19-48Z, cycle 28)
-- **Quiet window (cycle 28)**: No commits, no human-attended harness sessions. Only JSONL activity is current reflection job (5165b159, 14:19Z).
-- **Infrastructure handoff consumption remains zero**: Three URGENT executive-scope handoffs unconsumed: write-bypass (May 3, ~240h+), mutated-head (May 6, ~192h+), adversarial-review PATH (May 9, ~119h+). 4 consecutive cycles with no infrastructure repair uptake.
-- **adversarial-review.sh URGENT in runtime/.handoff/ since May 9T15:30Z**: Unconsumed. ~119h+ past filing, 71h past 48h structural-blocker threshold.
-- **conftest Finding 2 now 8 cycles unactioned**: Zero new rationale. Eight consecutive deferral cycles with no attended harness sessions.
-- **reflect.sh Write bypass now ~277h+**: TWO handoffs written (URGENT-reflect-sh-write-bypass-2026-05-03T15-23Z.md from May 3, and general-reflect-sh-write-bypass-fix-2026-05-12T04-49Z.md from May 12). Neither consumed. Highest-leverage unpatched gap in workspace.
+
+## What bit recent sessions (reflection 2026-05-15T02-20-02Z, cycle 31)
+- **Cycle 31 window (14:23Z May 14–02:20Z May 15): zero activity**. No commits, no attended human sessions, no harness telemetry. Both JSONL files are reflection jobs only (cycle 30 + this cycle).
+- **Infrastructure URGENTs still unconsumed (7th consecutive cycle)**: write-bypass (~300h+, 12.5 days), mutated-head (~215h+), adversarial-review PATH (~180h+, 7.5 days past structural-blocker threshold). Pattern is executive attention allocation, not inbox blindness — other executive handoffs ARE being consumed (.done files visible for atlas, command items).
+- **conftest Finding 2 escalated to URGENT (cycle 31 gate triggered)**: Cycle 30 committed "escalate if cycle 31 sees it open." Condition met — 11 cycles, no attended session. URGENT marker added to Known broken section above.
+- **CURRENT_STATE.md discipline drift**: Two consecutive reflection writes without an attended commit. Rule applies to attended sessions only, but the file is now ~24h stale on disk vs HEAD. Next attended session must commit before anything else.
+- **Supervisor INBOX saturation**: 17 items as of cycle 31, with synthesis generating 4+ new proposals per day (May 13–14 batch). Two new URGENT items in INBOX. Growing faster than consumed.
 
 ## What the next agent must read first
-1. **conftest Codex Finding 2 (neglected commitment, 8 cycles)**: `tests/conftest.py:52` — `except Exception:` -> `except (ImportError, ModuleNotFoundError):`. No ADR, no review, no dependency. Fix it before anything else.
-2. **reflect.sh Write bypass handoffs** [CRITICAL, ~277h+]: TWO files — `URGENT-reflect-sh-write-bypass-2026-05-03T15-23Z.md` (May 3 original, 10 days old) AND `general-reflect-sh-write-bypass-fix-2026-05-12T04-49Z.md` (May 12). Fix: `supervisor/scripts/lib/reflect.sh:112` — add `"Write"` to `--disallowedTools`. Executive scope. Consume one, archive the other.
-3. **adversarial-review.sh PATH fix** [CRITICAL, ~119h+, 71h past structural-blocker]: `URGENT-general-adversarial-review-path-fix-supervisor-2026-05-09T15-30Z.md`. NVM glob lookup chain. Executive scope.
-4. **runtime/.handoff/ infrastructure handoffs systematically de-prioritized**: 4 consecutive cycles. 3 URGENT items from May 3/6/9 all unconsumed. Product-visible handoffs consumed same-day. Prioritization failure, not format failure.
+1. **conftest.py Finding 2 [URGENT, 11 cycles]**: `tests/conftest.py:52` — `except Exception:` -> `except (ImportError, ModuleNotFoundError):`. No ADR, no review, no dependency. Fix immediately before any other work. This is the first item every session has named for 11 sessions; it cannot remain a "next session" item forever.
+2. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit`. Two reflection writes are now unstaged since `8193a3a`.
+3. **reflect.sh Write bypass handoffs** [CRITICAL, ~300h+, 12.5 days]: TWO files — `URGENT-reflect-sh-write-bypass-2026-05-03T15-23Z.md` (May 3) AND `general-reflect-sh-write-bypass-fix-2026-05-12T04-49Z.md` (May 12). Fix: `supervisor/scripts/lib/reflect.sh:112` — add `"Write"` to `--disallowedTools`. Executive scope.
+4. **adversarial-review.sh PATH fix** [CRITICAL, ~180h+, 7.5 days past structural-blocker]: `URGENT-general-adversarial-review-path-fix-supervisor-2026-05-09T15-30Z.md`. NVM glob lookup chain. Executive scope.
 5. **Context-repo Finding A Step 2**: Awaits principal verdict from `context-repository/docs/canon-3claims-per-assumption-verdict.md`.
-6. **preflight-distribution-signal.md decision**: 15 cycles. Reformat (5 min) or document non-canonical by intent.
+6. **preflight-distribution-signal.md decision**: 17 cycles. Reformat (5 min) or document non-canonical by intent.
