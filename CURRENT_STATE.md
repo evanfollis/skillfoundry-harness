@@ -1,6 +1,6 @@
 # CURRENT_STATE — skillfoundry-harness
 
-**Last updated**: 2026-05-15T02-20-02Z — reflection pass (cycle 31)
+**Last updated**: 2026-05-23T14-19-52Z — reflection pass (cycle 35)
 
 ---
 
@@ -75,17 +75,40 @@ Backfill re-run on valuation-context:
 - **Finding A (3 claims) Step 1 (81ea5b5, 2026-05-07)**: context-repo spec authority verdict applied. MAPPING.md now explicitly names partial-thesis collapse as "LOSSY by design choice." Migration target: Option 1 (id-prefix `<assumption_id>:problem|economic|channel`). Step 2 on hold pending principal verdict.
 
 
-## What bit recent sessions (reflection 2026-05-15T02-20-02Z, cycle 31)
-- **Cycle 31 window (14:23Z May 14–02:20Z May 15): zero activity**. No commits, no attended human sessions, no harness telemetry. Both JSONL files are reflection jobs only (cycle 30 + this cycle).
-- **Infrastructure URGENTs still unconsumed (7th consecutive cycle)**: write-bypass (~300h+, 12.5 days), mutated-head (~215h+), adversarial-review PATH (~180h+, 7.5 days past structural-blocker threshold). Pattern is executive attention allocation, not inbox blindness — other executive handoffs ARE being consumed (.done files visible for atlas, command items).
-- **conftest Finding 2 escalated to URGENT (cycle 31 gate triggered)**: Cycle 30 committed "escalate if cycle 31 sees it open." Condition met — 11 cycles, no attended session. URGENT marker added to Known broken section above.
-- **CURRENT_STATE.md discipline drift**: Two consecutive reflection writes without an attended commit. Rule applies to attended sessions only, but the file is now ~24h stale on disk vs HEAD. Next attended session must commit before anything else.
-- **Supervisor INBOX saturation**: 17 items as of cycle 31, with synthesis generating 4+ new proposals per day (May 13–14 batch). Two new URGENT items in INBOX. Growing faster than consumed.
+## What bit recent sessions (reflection 2026-05-22T14-20-52Z, cycle 34)
+- **Cycle 34 window (02:23Z–14:20Z May 22): no user activity**. Two automated reflection jobs only. No commits. All issues carry forward from cycle 33.
+- **conftest Finding 2 (URGENT, 14 cycles)**: No attended session in window. Still unactioned. Reflection loop notes: if cycle 35 sees this open, the loop should consider whether the item belongs in Known Broken with a "deferred, no active blocker" note rather than continuing to mark it first-priority.
+- **MCP Registry Landscape Feed harvest baseline aging**: 41+ days old as of this reflection. Principal verdict deadline is ~2026-06-10 (19 days). No change; flagging deadline narrowing.
+- **preflight-distribution-signal.md: decision avoidance, 20 cycles**. Ceiling reached; no further escalation from this loop.
+- **reflect.sh Write bypass + adversarial-review.sh PATH**: executive scope. No change.
 
 ## What the next agent must read first
-1. **conftest.py Finding 2 [URGENT, 11 cycles]**: `tests/conftest.py:52` — `except Exception:` -> `except (ImportError, ModuleNotFoundError):`. No ADR, no review, no dependency. Fix immediately before any other work. This is the first item every session has named for 11 sessions; it cannot remain a "next session" item forever.
-2. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit`. Two reflection writes are now unstaged since `8193a3a`.
-3. **reflect.sh Write bypass handoffs** [CRITICAL, ~300h+, 12.5 days]: TWO files — `URGENT-reflect-sh-write-bypass-2026-05-03T15-23Z.md` (May 3) AND `general-reflect-sh-write-bypass-fix-2026-05-12T04-49Z.md` (May 12). Fix: `supervisor/scripts/lib/reflect.sh:112` — add `"Write"` to `--disallowedTools`. Executive scope.
-4. **adversarial-review.sh PATH fix** [CRITICAL, ~180h+, 7.5 days past structural-blocker]: `URGENT-general-adversarial-review-path-fix-supervisor-2026-05-09T15-30Z.md`. NVM glob lookup chain. Executive scope.
-5. **Context-repo Finding A Step 2**: Awaits principal verdict from `context-repository/docs/canon-3claims-per-assumption-verdict.md`.
-6. **preflight-distribution-signal.md decision**: 17 cycles. Reformat (5 min) or document non-canonical by intent.
+1. **conftest.py Finding 2 [URGENT, 14 cycles]**: `tests/conftest.py:52` — `except Exception:` -> `except (ImportError, ModuleNotFoundError):`. No ADR, no review, no dependency. Fix immediately before any other work. 14 sessions have named this first.
+2. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit`. This file has reflection-pass edits unstaged since `13ef340`.
+3. **Principal verdicts pending** (from completion report `general-skillfoundry-passive-income-portfolio-update-complete-2026-05-21T22-00Z.md`): (a) MCP Registry Landscape Feed candidate — approve before harvest baseline ages past 60 days (~2026-06-10); (b) unversioned-root files question; (c) commit-purity pre-commit hook.
+4. **reflect.sh Write bypass** [CRITICAL — project-loop ceiling reached]: Fix in `supervisor/scripts/lib/reflect.sh:112`. Executive scope. Reflection loop will not escalate further.
+5. **adversarial-review.sh PATH fix** [CRITICAL — project-loop ceiling reached]: `URGENT-general-adversarial-review-path-fix-supervisor-2026-05-09T15-30Z.md`. Executive scope.
+6. **Context-repo Finding A Step 2**: Awaits principal verdict from `context-repository/docs/canon-3claims-per-assumption-verdict.md`.
+7. **preflight-distribution-signal.md [20 cycles]**: Reformat (5 min) or document non-canonical by intent. No further reflection escalation.
+
+---
+
+## Known broken or degraded — addendum (cycle 35)
+- **migrate.failure: 1 bad event in valuation-context** (telemetry id `4d1568ba`, 2026-05-23T02:30Z): Session 42e3727c ran `migrate.py` live (not dry-run) against valuation-context; `events: {ok:4, bad:1}`. Handoff claimed "clean" — discrepancy unresolved. Root cause: unknown parse failure in one `events/` file. Diagnose before next migrate run.
+- **Two new preflight watcher signals unrecorded in valuation-context**: Apr-28 `MCPScoringEngine/1.0` (4 `tools/call`), May-22 `Ae/JS 0.62.0`. Real-user signals under paused probe — evidence should accumulate. Not yet filed as evidence artifacts.
+
+## What bit recent sessions (reflection 2026-05-23T14-19-52Z, cycle 35)
+- **Cycle 35 window (02:23Z–14:19Z May 23): no user activity**. One automated session (42e3727c, Opus 4.7) closed two URGENT handoffs — valuation stale-open-loops and researcher mutated-head. Mutated-head confirmed as reflect.sh race condition, not a write bypass. Preflight pause decision committed to valuation-context.
+- **migrate.failure OBS-1**: 42e3727c reported clean migration in handoff; telemetry shows `events: 1 bad`. Radical-truth gap — do not trust the handoff's "clean" claim.
+- **Advisor gate not called for cross-repo live migrate**: 42e3727c (harness CWD) ran `migrate.py` live against valuation-context without advisor call. Violates CLAUDE.md advisor-gate rule.
+- **conftest Finding 2 (15 cycles)**: Cycle 34 reflection flagged "consider reclassifying if cycle 35 still open." Condition met. Proposal: move to Known Broken / deferred; remove from top-priority slot.
+- **MCP Registry deadline**: 18 days to ~2026-06-10.
+
+## What the next agent must read first (updated cycle 35)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit`. Reflection-pass edits unstaged since `13ef340`.
+2. **migrate.failure bad event [NEW]**: Run `python -m skillfoundry_harness.discovery_adapter.migrate /opt/workspace/projects/skillfoundry/skillfoundry-valuation-context --dry-run 2>&1 | grep -E "bad|error|WARN"` and name the failing events file. Do not run live migrate again until diagnosed.
+3. **conftest.py Finding 2 [reclassify — 15 cycles]**: `tests/conftest.py:52` — `except Exception:` -> `except (ImportError, ModuleNotFoundError):`. One-line fix, no review needed. Move to Known Broken if not fixing immediately.
+4. **Principal verdicts pending**: (a) MCP Registry Landscape Feed — approve before ~2026-06-10; (b) preflight pause verdict — two new external signals (Apr-28, May-22) now in watcher log.
+5. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Fix in `supervisor/scripts/lib/reflect.sh:112`. Executive scope.
+6. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+7. **Context-repo Finding A Step 2**: Awaits principal verdict.
