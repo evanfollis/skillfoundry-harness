@@ -1,9 +1,13 @@
 """One-shot backfill: skillfoundry-valuation-context markdown → canon envelopes.
 
 Usage:
-    python -m skillfoundry_harness.discovery_adapter.migrate \\
+    # MUST invoke via the harness venv — system python is missing `referencing`
+    # and `jsonschema>=4.20`, even though they are declared in pyproject.toml.
+    # `skillfoundry migrate` is NOT a console-script subcommand; use `python -m`.
+    /opt/workspace/projects/skillfoundry/skillfoundry-harness/.venv/bin/python \\
+        -m skillfoundry_harness.discovery_adapter.migrate \\
         --venture /opt/workspace/projects/skillfoundry/skillfoundry-valuation-context \\
-        [--dry-run]
+        [--dry-run] [--source-type system|user|cron|smoke]
 
 Reads every assumption, probe, evidence, decision markdown under
 `memory/venture/` and emits canon envelopes to `.canon/`.
