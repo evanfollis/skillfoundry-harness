@@ -143,6 +143,115 @@ Following the structure of `01-mcp-registry-landscape-feed.md`. Honesty about bo
 - **Sell-through and condition-class haircut defaults are guesses.** The Phase 1 lot ledger needs enough volume + actual hammer-price closeouts to start tuning these against real distributions. With N=50 lots in 14 days against 2-3 sources, expect coarse calibration only — not statistical significance.
 - **No competitive landscape mapped.** Whether Liquidity.io, B-Stock's own analytics, or a private fund already publishes this signal is unknown.
 
+## Prediction ledger telemetry overlay
+
+Per the workspace standard at `/opt/workspace/supervisor/docs/predictive-evidence-telemetry-loop.md`, every tracked lot must produce an **immutable prediction row** before the auction closes, then receive appended observations, score, and lessons after close. Reasoning prose does not substitute for scored predictions. Retrospective edits create a superseding row; the original row is never rewritten.
+
+### Action-tier declaration
+
+Phase 1 action tier is **`paper_trade`** for every row.
+
+- `allowed_actions`: `record_recommendation`, `observe_outcome`, `score`, `append_lesson`.
+- `blocked_actions`: `place_bid`, `pickup`, `store`, `ship`, `resell`, `broker_deal`, `take_commission`.
+
+Any row whose `actual_action` is anything other than `record_recommendation` is a tier-escalation event and requires a separate principal decision under ADR-0033. The schema rejects writes where `actual_action ∉ allowed_actions` unless a paired `tier_escalation_decision_ref` is attached.
+
+### Prediction row schema (recommerce specialization of the standard)
+
+A row is written **once**, before `close_time` is known. Fields below are the standard's row shape with recommerce-specific value conventions.
+
+**Identity + provenance**
+- `row_id` — uuid4
+- `candidate_id` — `recommerce-underwriting-2026-05-24` (this candidate's slug)
+- `market_surface` — one of `govdeals` | `bstock` | `gsaauctions`
+- `item_id` — source-stable lot id (URL or auction ref)
+- `item_snapshot_ref` — relative path or hash of the saved lot snapshot at `snapshot_time`
+- `snapshot_time` — ISO-8601 UTC
+- `source_terms_status` — one of `permitted_written` | `permitted_implied` | `unverified` | `denied`. Rows with `unverified` or `denied` are written for audit purposes only and must not contribute to portfolio metrics.
+
+**Agent + policy version**
+- `agent_run_id` — uuid for the run that wrote this row
+- `model_id` — exact model id (e.g., `claude-opus-4-7`)
+- `tool_versions` — map: `recommerce_underwriting` module version + freight-rate-table version + comp-source version
+- `prompt_or_policy_ref` — git ref to the policy version that produced the recommendation
+
+**Action tier**
+- `action_tier` — `paper_trade` (constant for Phase 1)
+- `allowed_actions`, `blocked_actions` — as above
+- `recommended_action` — `bid_up_to_max_bid` | `watch_only` | `ignore` | `kill_category`
+- `actual_action` — for Phase 1, always `record_recommendation` (assert in schema validator)
+
+**Hypothesis + prediction**
+- `hypothesis` — one-line statement of the edge claim (e.g., "freight-uncertainty discount means hammer will close ≤60% of comp_median")
+- `prediction_targets` — list of named targets (see below)
+- `prediction_values` — value per target
+- `confidence_or_distribution` — for point estimates, an 80% interval `[low, high]`; for probability targets, a calibrated probability in `[0, 1]` with the bucket the model is reporting against
+- `decision_thresholds` — explicit numeric thresholds the recommended_action key off of (hurdle rate, minimum manifest_confidence_factor, etc.)
+- `expected_value_metric` — `expected_edge_after_reserves`
+- `risk_budget` — for Phase 1, `0` (no capital at risk; defines the policy if/when we ever ship pilot)
+
+**Recommerce-specific prediction targets** (subset; not all need to be present on every row)
+- `final_hammer_price` (point + 80% interval)
+- `hammer_below_max_bid` (probability)
+- `all_in_cost_estimate` (point + interval)
+- `expected_recovery_estimate` (point + interval)
+- `expected_edge_after_reserves` (point; signed)
+- `category_liquidity_class` (categorical: high / medium / low / illiquid)
+- `sell_through_probability_at_target_margin` (probability)
+- `source_data_quality_failure` (probability — captures manifest/condition uncertainty risk)
+
+**Reasoning + evidence**
+- `reasoning_summary` — bounded structured text: premises, key uncertainty, dominant risk factor. Hard cap ~500 chars. **No unbounded chain-of-thought.**
+- `evidence_refs` — list of `{type, ref, weight}` for comp data, freight quotes, prior similar lots
+- `causal_assumptions` — list of named edges from the temporal causal map this row depends on
+- `counterfactuals` — list of `{condition, predicted_change}` (e.g., "if pickup_deadline were 7d instead of 3d, expected_edge +X%")
+- `known_unknowns` — explicit list of variables the model is not modeling and a tag for which kill criterion they map to
+
+**Post-close (appended later; null at write-time)**
+- `close_time` — ISO-8601 UTC; null until auction closes
+- `outcome_observations` — list of `{target, observed_value, observation_source, observation_quality}`. Observation quality one of `verified` | `proxy` | `inferred`. Inferred resale outcomes never count as verified.
+- `score` — per-target metric (absolute error / signed bias / Brier / log-loss / calibration-bucket-hit)
+- `error_attribution` — one of `data` | `model` | `tool` | `policy` | `market_regime` | `execution`
+- `lesson` — bounded structured text: one concrete reusable rule
+- `future_policy_suggestion` — one of `change_threshold` | `change_source_weight` | `change_category_eligibility` | `change_reserve_default` | `add_evidence_class` | `no_change_with_reason`. Must include the specific parameter and proposed value.
+
+**Supersession**
+- `supersedes` — `row_id` of any row this one replaces (only for revised reviews of an already-closed item; never for editing a still-open prediction)
+- `superseded_by` — backlink, written when a successor row appears
+
+### Anti-theater clauses (binding for this candidate)
+
+- No row is portfolio-relevant until `close_time` is appended and `score` is computed. Open rows are audit-only.
+- A `lesson` field that does not name a specific threshold, source-weight, category, or reserve to change is rejected by the review tool — it must point at one parameter or carry `no_change_with_reason`.
+- Aggregate metrics (median edge, category hit-rate, calibration curve) cannot be reported across <20 closed rows in a single category, or <50 closed rows across categories. Below those thresholds the candidate dashboard renders "insufficient data" instead of a number.
+- `confidence_or_distribution` is required on every prediction value. A bare point estimate is rejected.
+- Retrospective threshold movement is rejected at the storage layer. If a threshold needs to change, that creates a NEW policy version (`prompt_or_policy_ref` bump) which all subsequent rows reference; prior rows keep their original thresholds.
+
+### Storage + immutability
+
+- Rows are stored as append-only JSONL at `data/recommerce_underwriting/predictions.jsonl` inside whichever repo the loop runs in (TBD between `skillfoundry-harness` and a new sleeve-specific repo; flagged in the milestone schedule).
+- Each row's `row_id` plus row body is also hashed and the hash logged separately, so a retrospective edit would be detectable.
+- Telemetry events (`prediction.opened`, `prediction.closed`, `prediction.superseded`, `prediction.scored`) emit to `/opt/workspace/runtime/.telemetry/events.jsonl` using the workspace `sourceType` convention; `paper_trade` rows emit with `sourceType: system` for unattended runs and `sourceType: user` for attended scaffolding work.
+
+### Post-close review artifact
+
+For each closed row, the post-close review (per the standard's "Review After Close" section) writes a short markdown file under `docs/passive-income-candidates/recommerce-reviews/<close_date>/<row_id>.md` answering:
+
+- what was predicted
+- what happened
+- where the gap came from
+- whether the policy would have changed with better information
+- error attribution
+- one concrete future-policy suggestion (must match `future_policy_suggestion` field on the row)
+- what should NOT change despite this outcome
+- separation of luck from process quality
+
+Reviews are bounded in length (target <30 lines each) — anti-theater applies.
+
+### Companion schema artifact
+
+A machine-checkable JSON Schema at `tools/recommerce_underwriting/prediction-row.schema.json` ships alongside the Phase-1 scaffold (Day-4–10 milestone). Until that exists, this section is the authoritative spec.
+
 ## Stage-1 controller mapping (per-probe layer)
 
 If this candidate is authorized to graduate to a probe rather than ship-and-measure:
@@ -182,9 +291,9 @@ Working back from the IDEA-0007 `review_after: 2026-06-07` — 14 days from this
 | 1 (today) | Candidate doc filed | this file (committed) |
 | 1–3 | Source-access-permission outreach | 3 emails/forms sent to GovDeals, B-Stock, GSA Auctions partnerships/legal/BD. Replies tracked. |
 | 4–7 | Access-permission verdicts | For each source: written PERMITTED / NOT-PERMITTED / NO-REPLY status. If 0/3 permitted, halt and report. |
-| 4–10 | Schema + formula scaffold | `tools/recommerce_underwriting/` — Python module with `Lot` model, `all_in_cost()`, `expected_recovery()`, `max_bid()`, written against synthetic test data. Tests. |
+| 4–10 | Schema + formula scaffold | `tools/recommerce_underwriting/` — Python module with `Lot` model, `all_in_cost()`, `expected_recovery()`, `max_bid()`, prediction-row writer + immutability guard, JSON Schema at `prediction-row.schema.json`. Tests assert immutability + `actual_action ∈ allowed_actions`. |
 | 7–12 | Comp-data source identification | For each category planned, identify a permitted comp source. If no permitted comp source exists for any category, halt. |
-| 10–13 | First live lot pull (only if access permitted) | N=10 lots from the permitted source(s). Manual paper underwriting against the scaffold. Discrepancies noted. |
+| 10–13 | First live lot pull (only if access permitted) | N=10 lots from the permitted source(s). Each lot produces ONE prediction row at write-time (immutable). Post-close review files appended as auctions close. |
 | 14 (2026-06-07) | Review-after artifact | Short status doc at `docs/passive-income-candidates/02-recommerce-underwriting-preflight-status-2026-06-07.md` covering: access-permission state, comp-data state, scaffold state, lots underwritten so far, kill-criteria check, next-step recommendation. |
 
 If the milestone schedule slips because no source permission is received in writing by Day 7, the Day-14 artifact still ships — its content just shifts from "first lots underwritten" to "halted by access verification gate" + recommendation (give up, try other sources, license a paid feed instead, or pursue a completely different recommerce angle).
