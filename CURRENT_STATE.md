@@ -1,6 +1,6 @@
 # CURRENT_STATE — skillfoundry-harness
 
-**Last updated**: 2026-05-23T14-19-52Z — reflection pass (cycle 35)
+**Last updated**: 2026-05-24T14-21-30Z — reflection pass (cycle 37)
 
 ---
 
@@ -110,5 +110,36 @@ Backfill re-run on valuation-context:
 3. **conftest.py Finding 2 [reclassify — 15 cycles]**: `tests/conftest.py:52` — `except Exception:` -> `except (ImportError, ModuleNotFoundError):`. One-line fix, no review needed. Move to Known Broken if not fixing immediately.
 4. **Principal verdicts pending**: (a) MCP Registry Landscape Feed — approve before ~2026-06-10; (b) preflight pause verdict — two new external signals (Apr-28, May-22) now in watcher log.
 5. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Fix in `supervisor/scripts/lib/reflect.sh:112`. Executive scope.
+6. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+7. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-24T02-19-14Z, cycle 36)
+- **Cycle 36 window (14:20Z May 23 – 02:19Z May 24): attended session active.** Three commits: `a3917d0` (CURRENT_STATE.md discipline — correct first action), `cc81aa7` (migrate venv doc fix, synthesis Cycle 54 P2 closed), `c6071bb` (recommerce underwriting preflight candidate proposed).
+- **migrate.failure bad event (OBS-1)** still undiagnosed. Cycle 35 flagged it; this window did not address it. Do not run live migrate until diagnosed.
+- **Recommerce candidate (c6071bb)**: paper-only Phase 1, all sources UNVERIFIED. Review deadline 2026-06-07 (14 days). Needs principal verdict.
+- **conftest.py Finding 2 (16 cycles)**: reclassified to Known Broken / deferred in CURRENT_STATE.md cycle 35. The item is real but not blocking. One-line fix at any attended session.
+- **MCP Registry deadline**: 17 days to ~2026-06-10.
+
+## What the next agent must read first (updated cycle 36)
+1. **migrate.failure bad event**: `.venv/bin/python -m skillfoundry_harness.discovery_adapter.migrate /opt/workspace/projects/skillfoundry/skillfoundry-valuation-context --dry-run 2>&1 | grep -E "bad|error|WARN"`. Name the failing events file. Do not run live migrate until diagnosed.
+2. **Principal verdicts pending**: (a) Recommerce underwriting candidate — review by 2026-06-07; (b) MCP Registry Landscape Feed — approve by ~2026-06-10; (c) preflight pause — two external signals (Apr-28, May-22) in watcher log.
+3. **conftest.py Finding 2 [Known Broken, 16 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+4. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope.
+5. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+6. **Context-repo Finding A Step 2**: Awaits principal verdict.
+7. **preflight-distribution-signal.md**: Reformat or document non-canonical. No further reflection escalation.
+
+## What bit recent sessions (reflection 2026-05-24T14-21-30Z, cycle 37)
+- **Cycle 37 window (02:19Z–14:21Z May 24): no user activity**. One automated reflection job only. No commits. CURRENT_STATE.md edits from cycle 36 reflection remain uncommitted (expected — next attended session commits as first action per discipline rule).
+- **migrate.failure bad event (OBS-1)**: Third consecutive cycle without diagnosis. URGENT handoff filed: `URGENT-skillfoundry-harness-migrate-failure-bad-event-3cycles.md`. ADR-0027 3-cycle carry-forward escalation rule triggered.
+- **Deadline cluster tightening**: Recommerce candidate review 2026-06-07 (14 days), MCP Registry verdict ~2026-06-10 (17 days). No movement in two consecutive windows.
+- **conftest.py Finding 2 (17 cycles)**: Known Broken / deferred. No further loop escalation.
+
+## What the next agent must read first (updated cycle 37)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit`.
+2. **migrate.failure bad event [URGENT — 3 cycles, URGENT handoff filed]**: `.venv/bin/python -m skillfoundry_harness.discovery_adapter.migrate /opt/workspace/projects/skillfoundry/skillfoundry-valuation-context --dry-run 2>&1 | grep -E "bad|error|WARN"`. Call `advisor()` before any live migrate run (cross-repo gate).
+3. **Principal verdicts pending (deadline cluster)**: (a) Recommerce underwriting candidate — review by 2026-06-07; (b) MCP Registry Landscape Feed — approve by ~2026-06-10; (c) preflight pause — two external signals (Apr-28, May-22) in watcher log.
+4. **conftest.py Finding 2 [Known Broken, 17 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+5. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope.
 6. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
 7. **Context-repo Finding A Step 2**: Awaits principal verdict.
