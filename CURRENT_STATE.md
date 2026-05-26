@@ -1,6 +1,6 @@
 # CURRENT_STATE — skillfoundry-harness
 
-**Last updated**: 2026-05-24T14-21-30Z — reflection pass (cycle 37)
+**Last updated**: 2026-05-26T02-19-56Z — reflection pass (cycle 40)
 
 ---
 
@@ -48,7 +48,7 @@ Backfill re-run on valuation-context:
 - **LCI Tally form needed**: Landing page is LIVE at `lci.pages.dev` but shows "Intake form loading shortly." Evan must: (1) create Tally form at tally.so, (2) return embed code → swap `<!-- TALLY_EMBED -->` in `products/lci/index.html`, (3) agent runs `CLOUDFLARE_API_TOKEN=$(cat /root/.cloudflare-token) WRANGLER_HOME=/tmp/wrangler-home npm --cache /tmp/npm-cache exec --yes wrangler -- pages deploy products/lci --project-name lci --commit-dirty=true`.
 - **latencyMs misunderstood**: `latencyMs` measures server processing time, NOT network round-trip. ADR-0019 latency-floor heuristic is wrong. See evidence reclassification in valuation-context.
 - **adversarial-review.sh PATH bug [CRITICAL, ~180h+, ~132h PAST structural-blocker threshold]**: Codex IS installed at `/root/.nvm/versions/node/v22.22.0/bin/codex` (codex-cli 0.128.0). `adversarial-review.sh:42` fails because the unattended PATH omits NVM bin. Fix: Option B lookup chain in `adversarial-review.sh`. URGENT filed to executive: `URGENT-general-adversarial-review-path-fix-supervisor-2026-05-09T15-30Z.md`. Session 65447b9d proved the fix (ran real Codex review, 32,028 tokens). 6 days past 48h structural-blocker threshold.
-- **preflight-distribution-signal.md non-canonical**: probe file uses prose/bold format, excluded from migration runs. Emits explicit friction error to stderr. Source file needs reformat into canonical backtick key-value format — or a decision to leave it non-canonical must be documented. 14 cycles unresolved.
+- **preflight-distribution-signal.md non-canonical [RESOLVED — valuation-context@9b87438]**: Probe file reformatted to canonical backtick key-value format in valuation-context at 2026-05-23T22:53Z. Harness migration clean: `events: 6 ok / 0 bad`. No longer failing.
 - **reflect.sh Write bypass unpatched [CRITICAL, ~300h+, TWO handoffs unconsumed since May 3 + May 12]**: Three confirmed exploitations: project repos (May 2, May 6) + supervisor HEAD advance (May 6 14:22Z, `2bdfdaf1`). `URGENT-reflect-sh-write-bypass-2026-05-03T15-23Z.md` (11 days old) and `general-reflect-sh-write-bypass-fix-2026-05-12T04-49Z.md` (~46h old), both no `.done`. Fix: one line in `supervisor/scripts/lib/reflect.sh:112` — add `"Write"` to `--disallowedTools`. Executive scope.
 - **CURRENT_STATE.md HEAD/disk gap [RESOLVED 2026-05-13T15:37Z]**: Closed by `8193a3a`. Discipline rule landed in `8127dec` (CLAUDE.md). Cold-start gap eliminated. Monitor for recurrence if next session skips the commit discipline rule.
 - **conftest.py Finding 2 [URGENT — 11 cycles, ESCALATED cycle 31]**: `tests/conftest.py:52` — `except Exception:` should be narrowed to `except (ImportError, ModuleNotFoundError):`. Called "safe to fix immediately, no ADR" since cycle 21. Unactioned through cycle 31. Cycle 30 committed to escalating if cycle 31 saw it still open — condition met. No dependency, no review required. Fix immediately in next attended session before any other work.
@@ -143,3 +143,56 @@ Backfill re-run on valuation-context:
 5. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope.
 6. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
 7. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-25T02-23-09Z, cycle 38)
+- **Cycle 38 window (14:21Z May 24 – 02:23Z May 25): attended session active (42e3727c final commits).** Two commits: `523341b` (CURRENT_STATE.md discipline — correct first action), `2976870` (predictive-evidence telemetry overlay on recommerce candidate).
+- **migrate.failure URGENT CLOSED**: bad event diagnosed as `preflight-distribution-signal.md` parse failure, already fixed at `valuation-context@9b87438` (22:53Z May 23) — before cycle 37 filed the URGENT. Carry-forward false positive: three reflection cycles asserted stale state without re-running verification. Completion handoff written + `.done`.
+- **Radical truth gap on record**: original completion handoff (42e3727c earlier context) reported "clean" while telemetry showed `bad: 1`. Violation documented in resolution handoff; not erased.
+- **Advisor-gate violation on record**: live cross-repo migrate at 02:30Z May 23 without advisor call. Documented in resolution handoff.
+- **Reflection loop carry-forward bug (3rd instance)**: three cycles re-asserted a resolved bug. Executive-scope fix needed in reflect.sh or synthesis prompt.
+- **`/review` not invoked for `2976870`**: 111-line schema + anti-theater contract shipped without adversarial review. Gap.
+- **Recommerce Day 1–3 outreach status unknown**: no evidence of access-permission emails sent to GovDeals/B-Stock/GSA. If not started, Day-7 verdict is unreachable.
+
+## What the next agent must read first (updated cycle 38)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit`.
+2. **Recommerce Day 1–3 outreach**: Has source-access outreach been sent? If not, start immediately — Day 7 verdict (access permitted/denied) gates all subsequent milestones. Review deadline 2026-06-07.
+3. **predictions.jsonl repo decision needed**: `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md` Storage section says "TBD." Decide before Day-4–10 scaffold begins (within 3 days).
+4. **`/review` on `2976870`**: Run before building scaffold against the schema.
+5. **conftest.py Finding 2 [Known Broken, 18 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed. Pick up opportunistically.
+6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope. `supervisor/scripts/lib/reflect.sh:112`.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-25T14-22-45Z, cycle 39)
+- **Cycle 39 window (02:23Z–14:22Z May 25): no user activity**. Two automated reflection sessions only (c2509cb0 = cycle 38 continuation; b6077e7e = this reflection). No commits. All issues carry forward.
+- **Deadline cluster now 13/16 days**: Recommerce review deadline 2026-06-07 (13 days), MCP Registry verdict ~2026-06-10 (16 days). No movement in three consecutive windows. Day 1–3 recommerce outreach status still unknown.
+- **`/review` gap persists**: `2976870` (predictive-evidence telemetry overlay) shipped without adversarial review two cycles ago. Gap remains open.
+- **conftest.py Finding 2 (19 cycles)**: Known Broken / deferred. No further loop escalation.
+
+## What the next agent must read first (updated cycle 39)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit`.
+2. **Recommerce Day 1–3 outreach [URGENT — 3 windows no movement]**: Has source-access outreach been sent to GovDeals/B-Stock/GSA? Day-7 access verdict gates all milestones. Review deadline 2026-06-07 (13 days).
+3. **predictions.jsonl repo decision needed**: Storage location TBD in `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md`. Decide before Day-4–10 scaffold (overdue by 3 days if Day 1 was May 22).
+4. **`/review` on `2976870`**: Anti-theater schema unreviewed. Run before any scaffold code is written.
+5. **conftest.py Finding 2 [Known Broken, 19 cycles]**: `tests/conftest.py:52` — one-liner fix.
+6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope. `supervisor/scripts/lib/reflect.sh:112`.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-26T02-19-56Z, cycle 40)
+- **Cycle 40 window (14:22Z May 25 – 02:19Z May 26): no user activity**. One automated reflection session only (0b8b2ce7). No commits. All issues carry forward.
+- **Deadline cluster now 12/15 days**: Recommerce review deadline 2026-06-07 (12 days), MCP Registry verdict ~2026-06-10 (15 days). Four consecutive windows without movement. Day 1–3 outreach status still unconfirmed in any artifact.
+- **Day-7 access verdict window**: If Day 1 was 2026-05-22, the Day-7 access verdict (GovDeals/B-Stock/GSA) closes 2026-05-29 — **3 days away**. If outreach was not sent, the probe timeline has already slipped.
+- **`predictions.jsonl` decision**: Storage location TBD; Day-4–10 scaffold was due to start by May 25 if Day 1 was May 22. Decision is overdue.
+- **`/review` gap (3 cycles)**: `2976870` anti-theater schema still unreviewed. If scaffold builds against it, review findings become more expensive.
+- **conftest.py Finding 2 (20 cycles)**: Known Broken / deferred. Loop will not escalate further.
+
+## What the next agent must read first (updated cycle 40)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit`.
+2. **Recommerce Day 1–3 outreach [URGENT — 4 windows, Day-7 verdict ~3 days away]**: Confirm whether access-permission emails were sent to GovDeals/B-Stock/GSA. If not sent, escalate to principal — probe timeline may already be broken.
+3. **predictions.jsonl repo decision needed [overdue]**: Storage location TBD in `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md`. Day-4–10 scaffold cannot start without this.
+4. **`/review` on `2976870`**: Anti-theater schema unreviewed. Run before any scaffold code is written.
+5. **conftest.py Finding 2 [Known Broken, 20 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope. `supervisor/scripts/lib/reflect.sh:112`.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
