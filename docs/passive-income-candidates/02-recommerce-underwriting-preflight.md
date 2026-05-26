@@ -8,6 +8,8 @@
 **Strategy doc**: `/opt/workspace/supervisor/docs/passive-income-portfolio-strategy.md`
 **Review deadline**: 2026-06-07 (14 days; per IDEA-0007 `review_after`)
 
+> **AUTHORIZATION GATE — read before treating any milestone date below as scheduled work.** Phase 1 (including the Day-1–3 source-access outreach to GovDeals / B-Stock / GSA Auctions partnerships teams) is **contingent on principal authorization**. The "Verdict requested from principal / executive" section at the foot of this document is the gate. Until that verdict lands, the milestone schedule is a **conditional plan**, not an in-flight project. As of 2026-05-26, authorization had not been received and no outreach had been sent. Reflection / synthesis layers should not interpret the table below as work-in-progress that has slipped — it is work that has not started because the prerequisite verdict has not been given.
+
 ---
 
 ## TL;DR — what this preflight is and isn't
