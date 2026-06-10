@@ -1,6 +1,6 @@
 # CURRENT_STATE — skillfoundry-harness
 
-**Last updated**: 2026-05-26T02-19-56Z — reflection pass (cycle 40)
+**Last updated**: 2026-06-10T02-22-48Z — reflection pass (cycle 48)
 
 ---
 
@@ -193,6 +193,145 @@ Backfill re-run on valuation-context:
 3. **predictions.jsonl repo decision needed [overdue]**: Storage location TBD in `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md`. Day-4–10 scaffold cannot start without this.
 4. **`/review` on `2976870`**: Anti-theater schema unreviewed. Run before any scaffold code is written.
 5. **conftest.py Finding 2 [Known Broken, 20 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope. `supervisor/scripts/lib/reflect.sh:112`.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-26T14-21-55Z, cycle 41)
+- **Cycle 41 window (02:19Z–14:21Z May 26): attended automated session (42e3727c continuation).** Two commits: `aaa102e` (CURRENT_STATE.md discipline — correct first action), `0d4b237` (authorization gate banner in recommerce candidate doc).
+- **Recommerce Day-1–3 false alarm resolved**: Cycles 38–40 escalated "outreach unconfirmed" as slippage. Root cause: milestone table in candidate doc preceded authorization request — reflection loop read it as an active plan. Session 42e3727c correctly diagnosed: Phase 1 was never principal-authorized; outreach was never sent by design. ADR-0020 boundary held correctly. Status handoff filed to principal.
+- **Authorization gate pattern**: `0d4b237` is a systemic fix — adds a `> AUTHORIZATION GATE` banner near the top of conditional candidate docs. Any other conditional docs in `docs/passive-income-candidates/` without this banner are at the same risk.
+- **Handoff-dispatcher re-fire (4 invocations, same handoff)**: Session received the same handoff prompt at lines 1707, 1726, 1735, 1747. Second observation of this pattern. Source: `session-supervisor.sh` or dispatcher hook — deletion may not be durable before next fire.
+- **`/review` gap (4 cycles)**: `2976870` anti-theater schema still unreviewed. No scaffold code written yet.
+- **conftest.py Finding 2 (21 cycles)**: Known Broken / deferred. Loop will not escalate further.
+
+## What the next agent must read first (updated cycle 41)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit`.
+2. **Recommerce Phase 1 verdict needed from principal**: Day-7 "deadline" was a false alarm — outreach was never sent because Phase 1 was never authorized. Status handoff filed. Principal decision gate: authorize Phase 1 (brand outreach to GovDeals/B-Stock/GSA) or hold/close. Review deadline 2026-06-07 (12 days).
+3. **`/review` on `2976870` [4 cycles]**: Anti-theater schema + prediction-row contract unreviewed. Run before any scaffold code. `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md`.
+4. **Check `01-mcp-registry-landscape-feed.md` for missing authorization gate banner**: Same false-escalation risk as the recommerce doc before `0d4b237`. One-minute check + add banner if needed.
+5. **`predictions.jsonl` storage TBD**: Unblocks scaffold if Phase 1 authorized. Options: `harness/data/`, `valuation-context`, or new `recommerce-context` lineage.
+6. **conftest.py Finding 2 [Known Broken, 21 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+7. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope. `supervisor/scripts/lib/reflect.sh:112`.
+8. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+9. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-27T02-20-20Z, cycle 42)
+- **Cycle 42 window (14:21Z May 26–02:20Z May 27): no user activity.** Reflection-only window. No commits.
+- **Recommerce status handoff unconsumed**: `general-recommerce-status-2026-05-26.md` filed by session 42e3727c at ~05:00Z May 26. Principal verdict gate (authorize/defer/reframe/kill Phase 1 by 2026-05-29). No `.done` marker as of this pass.
+- **`01-mcp-registry-landscape-feed.md` still lacks authorization gate banner**: Same structural false-escalation risk as the pre-`0d4b237` recommerce doc. Cycle 41 Proposal 1 unactioned.
+- **`/review` on `2976870` (5 cycles)**: Anti-theater schema still unreviewed. Adversarial-review.sh PATH bug (executive scope) blocks automated path; manual `/review` in attended session is the workaround.
+- **conftest.py Finding 2 (22 cycles)**: Known Broken / deferred. One-liner; pick up opportunistically.
+
+## What the next agent must read first (updated cycle 42)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit -m "Land CURRENT_STATE.md reflection cycles 41-42"`.
+2. **Recommerce Phase 1 verdict**: `general-recommerce-status-2026-05-26.md` is in executive queue. Principal decision: authorize/defer/reframe/kill Phase 1. Calendar window closes 2026-05-29 for the 2026-06-07 review. No external clock has started; only schedule slips.
+3. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — this candidate is NOT authorized for execution` after front matter, before delivery shape. One-minute fix; prevents a future false-escalation chain.
+4. **`/review` on `2976870` [5 cycles]**: Manual `/review` in attended session before any scaffold code. `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md`.
+5. **conftest.py Finding 2 [Known Broken, 22 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-27T14-19-12Z, cycle 43)
+- **Cycle 43 window (02:20Z–14:19Z May 27): no user activity.** Reflection-only window. No commits. Third consecutive no-activity 12h slot (~36h total).
+- **Recommerce verdict deadline 2 days away**: `general-recommerce-status-2026-05-26.md` has been in executive queue ~33h with no `.done` marker. Principal verdict (authorize/defer/reframe/kill Phase 1) due 2026-05-29. If unconsumed through tomorrow, 2026-06-07 review window narrows further.
+- **`01-mcp-registry-landscape-feed.md` authorization gate banner (3rd cycle unactioned)**: Proposal 1 from cycle 41, still not applied.
+- **`/review` on `2976870` (6 cycles)**: Anti-theater schema + prediction-row contract still unreviewed. Manual `/review` is the unblocked path.
+- **conftest.py Finding 2 (23 cycles)**: Known Broken / deferred. Loop will not escalate further.
+
+## What the next agent must read first (updated cycle 43)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit -m "Land CURRENT_STATE.md reflection cycles 41-43"`.
+2. **Recommerce Phase 1 verdict [2 days left]**: `general-recommerce-status-2026-05-26.md` in executive queue. Calendar window closes 2026-05-29. No external clock started; only schedule slips if verdict is delayed.
+3. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — this candidate is NOT authorized for execution` after front matter, before delivery shape. One-minute fix; 3rd cycle unactioned.
+4. **`/review` on `2976870` [6 cycles]**: Manual `/review` in attended session before any scaffold code. `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md`.
+5. **conftest.py Finding 2 [Known Broken, 23 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-28T02-20-00Z, cycle 44)
+- **Cycle 44 window (14:19Z May 27 – 02:20Z May 28): no user activity.** Reflection-only window. No commits. Fourth consecutive no-activity 12h slot (~48h total without attended session).
+- **Recommerce verdict deadline 1 day away**: `general-recommerce-status-2026-05-26.md` now ~44h in executive queue with no `.done` marker. Calendar window closes 2026-05-29 (tomorrow). If principal verdict does not land today, 2026-06-07 review window cannot be met on original 14-day schedule.
+- **`01-mcp-registry-landscape-feed.md` authorization gate banner (4th cycle unactioned)**: Same false-escalation structural risk as pre-`0d4b237` recommerce doc. Reflection loop ceiling not yet reached; still actionable with one-minute fix in attended session.
+- **`/review` on `2976870` (7 cycles)**: Anti-theater schema + prediction-row contract still unreviewed. Manual `/review` remains unblocked.
+- **conftest.py Finding 2 (24 cycles)**: Known Broken / deferred. Loop will not escalate further.
+
+## What the next agent must read first (updated cycle 44)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit -m "Land CURRENT_STATE.md reflection cycles 41-44"`.
+2. **Recommerce Phase 1 verdict [1 day left — TOMORROW]**: `general-recommerce-status-2026-05-26.md` in executive queue ~44h. Calendar window closes 2026-05-29. No external clock started; only internal schedule slips if verdict is delayed.
+3. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — this candidate is NOT authorized for execution` after front matter, before delivery shape. 4th cycle unactioned. One-minute fix.
+4. **`/review` on `2976870` [7 cycles]**: Manual `/review` in attended session before any scaffold code. `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md`.
+5. **conftest.py Finding 2 [Known Broken, 24 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-28T14-20-04Z, cycle 45)
+- **Cycle 45 window (02:20Z–14:20Z May 28): no user activity.** Reflection-only window. No commits. Fifth consecutive no-activity 12h slot (~60h total without attended session).
+- **Recommerce verdict deadline is TOMORROW (2026-05-29)**: `general-recommerce-status-2026-05-26.md` now ~60h in executive queue with no `.done` marker. If verdict does not land today, 2026-06-07 review window is unreachable on 14-day schedule. No external clock started; internal schedule slips.
+- **`01-mcp-registry-landscape-feed.md` authorization gate banner (5th cycle unactioned)**: Confirmed via grep — no banner present. Same structural false-escalation risk as pre-`0d4b237` recommerce doc.
+- **`/review` on `2976870` (8 cycles)**: Anti-theater schema still unreviewed. Ceiling not yet reached; gap compounding.
+- **conftest.py Finding 2 (25 cycles)**: Known Broken / deferred. Loop will not escalate further.
+
+## What the next agent must read first (updated cycle 45)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit -m "Land CURRENT_STATE.md reflection cycles 41-45"`.
+2. **Recommerce Phase 1 verdict [DEADLINE TOMORROW 2026-05-29]**: `general-recommerce-status-2026-05-26.md` in executive queue ~60h. Authorize / defer / reframe / kill Phase 1. No external clock; only internal schedule slips.
+3. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — this candidate is NOT authorized for execution` after front matter. 5th cycle unactioned. One-minute fix.
+4. **`/review` on `2976870` [8 cycles]**: Manual `/review` in attended session before any scaffold code. `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md`.
+5. **conftest.py Finding 2 [Known Broken, 25 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope. `supervisor/scripts/lib/reflect.sh:112`.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-29T02-21-40Z, cycle 46)
+- **Cycle 46 window (14:20Z May 28 – 02:21Z May 29): no user activity.** Reflection-only window. No commits. Sixth consecutive no-activity 12h slot (~72h total without attended session).
+- **Recommerce verdict deadline is TODAY (2026-05-29)**: `general-recommerce-status-2026-05-26.md` now ~84h in executive queue with no `.done` marker. Past today, 2026-06-07 review window is unreachable on 14-day schedule. No external clock started; internal schedule slips.
+- **`01-mcp-registry-landscape-feed.md` authorization gate banner (6th cycle unactioned)**: Same structural false-escalation risk. Reflection loop ceiling approaching within 2 cycles.
+- **`/review` on `2976870` (9 cycles)**: Anti-theater schema still unreviewed. Ceiling not yet reached.
+- **conftest.py Finding 2 (26 cycles)**: Known Broken / deferred. Loop will not escalate further.
+
+## What the next agent must read first (updated cycle 46)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit -m "Land CURRENT_STATE.md reflection cycles 41-46"`.
+2. **Recommerce Phase 1 verdict [DEADLINE TODAY 2026-05-29]**: `general-recommerce-status-2026-05-26.md` in executive queue ~84h. Authorize / defer / reframe / kill Phase 1. No external clock; only internal schedule slips.
+3. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — this candidate is NOT authorized for execution` after front matter. 6th cycle unactioned. One-minute fix.
+4. **`/review` on `2976870` [9 cycles]**: Manual `/review` in attended session before any scaffold code. `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md`.
+5. **conftest.py Finding 2 [Known Broken, 26 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope. `supervisor/scripts/lib/reflect.sh:112`.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-05-29T14-19-59Z, cycle 47)
+- **Cycle 47 window (02:21Z–14:20Z May 29): no user activity.** Reflection-only window. No commits. Seventh consecutive no-activity 12h slot (~84h total without attended session).
+- **Recommerce verdict deadline is TODAY end-of-day (2026-05-29)**: `general-recommerce-status-2026-05-26.md` now ~96h in executive queue with no `.done` marker. Reflection runs at 14:20Z — ~10h remain. Past today, 2026-06-07 review window is unreachable on 14-day schedule.
+- **`01-mcp-registry-landscape-feed.md` authorization gate banner (7th cycle unactioned)**: Reflection loop ceiling at 10 cycles — 3 cycles away.
+- **`/review` on `2976870` (10 cycles)**: Anti-theater schema unreviewed. Ceiling not yet reached; manual `/review` unblocked.
+- **conftest.py Finding 2 (27 cycles)**: Known Broken / deferred. Loop will not escalate further.
+
+## What the next agent must read first (updated cycle 47)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit -m "Land CURRENT_STATE.md reflection cycles 41-47"`.
+2. **Recommerce Phase 1 verdict [DEADLINE TODAY end-of-day 2026-05-29]**: `general-recommerce-status-2026-05-26.md` in executive queue ~96h. Authorize / defer / reframe / kill Phase 1. No external clock; only internal schedule slips.
+3. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — this candidate is NOT authorized for execution` after front matter. 7th cycle unactioned. One-minute fix. Ceiling at 10 cycles.
+4. **`/review` on `2976870` [10 cycles]**: Manual `/review` in attended session before any scaffold code. `docs/passive-income-candidates/02-recommerce-underwriting-preflight.md`.
+5. **conftest.py Finding 2 [Known Broken, 27 cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope. `supervisor/scripts/lib/reflect.sh:112`.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-06-10T02-22-48Z, cycle 48)
+- **Cycle 48 window (14:17Z Jun 9 – 02:22Z Jun 10): no user activity.** Third consecutive no-activity window. Last attended session was cycle 41 (2026-05-26T04:52Z) — now 15 days ago.
+- **All principal-verdict deadlines elapsed**: recommerce Phase 1 verdict (target 2026-05-29, 12 days past), recommerce candidate review (target 2026-06-07, 3 days past), MCP Registry Landscape Feed approval (target ~2026-06-10, today). `general-recommerce-status-2026-05-26.md` remains unconsumed in executive queue at 15 days with no `.done` marker.
+- **MCP Registry baseline aging**: harvest report (`memory/reports/launch_compliance_harvest_report.md`) dated 2026-04-11 is now 60 days old — the explicit aging threshold named in cycle 35. If a second snapshot is not run soon, the diff product loses its baseline.
+- **CURRENT_STATE.md commit discipline still unmet**: Cycles 41–47 edits uncommitted since `aaa102e` (2026-05-26). Item 1 in every priority list since cycle 38.
+- **`01-mcp-registry-landscape-feed.md` authorization gate banner**: 8 cycles unactioned.
+- **`/review` on `2976870`**: 10+ cycles unactioned.
+
+## What the next agent must read first (updated cycle 48)
+1. **CURRENT_STATE.md commit discipline**: First repo-touching action must be `git add CURRENT_STATE.md && git commit -m "Land CURRENT_STATE.md reflection cycles 41-48"`.
+2. **Principal verdict needed (both tracks)**: (a) Recommerce Phase 1 — authorize / defer / reframe / kill; (b) MCP Registry Landscape Feed re-harvest — baseline is 60 days old, at the aging threshold. Both are in `general-recommerce-status-2026-05-26.md` context.
+3. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: One-minute fix; 8th cycle unactioned.
+4. **`/review` on `2976870` [10+ cycles]**: Manual `/review` in attended session before any scaffold code.
+5. **conftest.py Finding 2 [Known Broken, 27+ cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
 6. **reflect.sh Write bypass** [CRITICAL — ceiling reached]: Executive scope. `supervisor/scripts/lib/reflect.sh:112`.
 7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
 8. **Context-repo Finding A Step 2**: Awaits principal verdict.
