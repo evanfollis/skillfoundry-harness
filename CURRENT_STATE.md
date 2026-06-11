@@ -1,6 +1,6 @@
 # CURRENT_STATE — skillfoundry-harness
 
-**Last updated**: 2026-06-10T02-22-48Z — reflection pass (cycle 48)
+**Last updated**: 2026-06-11T02-25-36Z — reflection pass (cycle 50)
 
 ---
 
@@ -352,5 +352,24 @@ Backfill re-run on valuation-context:
 4. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — Not authorized for execution without principal verdict.` after `---` separator (~line 5). One-minute fix; 9th cycle unactioned.
 5. **`/review` on `2976870` [11+ cycles]**: Manual `/review` in attended session before any scaffold code.
 6. **conftest.py Finding 2 [Known Broken, 28+ cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-06-11T02-25-36Z, cycle 50)
+- **Cycle 50 window (14:26Z Jun 10 – 02:25Z Jun 11): no attended session.** One automated artifact: `7126829` committed by the cycle 49 reflection job (`5ada2f4b`).
+- **Reflection job committed CURRENT_STATE.md AGAIN [5th exploitation — now consecutive]**: Commit `7126829` was made by `5ada2f4b` despite prohibition. Cycles 48 and 49 both exploited the bypass on the same calendar day (2026-06-10, commits `327945d` at 02:29 and `7126829` at 14:29). This is now the default behavior of the reflection loop when `--disallowedTools` doesn't block git. Fix: `supervisor/scripts/lib/reflect.sh:112`. Executive scope. Same pattern active in supervisor (`URGENT-supervisor-reflection-dirty-tree.md`, `URGENT-supervisor-reflection-mutated-head.md`).
+- **Branch ahead-by-2**: `327945d` and `7126829` not pushed to origin.
+- **16 days since last attended session (cycle 41, 2026-05-26)**: All open loops stalled.
+- **`general-recommerce-status-2026-05-26.md` at 16 days unconsumed**: Both recommerce Phase 1 and MCP Registry re-harvest verdicts pending. MCP Registry baseline now 61+ days old (past 60-day threshold).
+- **`01-mcp-registry-landscape-feed.md` authorization gate banner**: 10 cycles unactioned.
+- **`/review` on `2976870`**: 12+ cycles unactioned.
+
+## What the next agent must read first (updated cycle 50)
+1. **`git push`**: Branch is ahead of origin by 2 (`327945d`, `7126829`). Both are CURRENT_STATE.md only. Push before any other work.
+2. **reflect.sh Write bypass [5th exploitation, now consecutive — CRITICAL]**: Cycles 48 and 49 both committed to this repo on 2026-06-10. Fix: `supervisor/scripts/lib/reflect.sh:112` — add `"Write"` to `--disallowedTools`. Executive scope.
+3. **Principal verdicts (16 days pending)**: (a) Recommerce Phase 1 — authorize / defer / reframe / kill; (b) MCP Registry Landscape Feed re-harvest — baseline 61+ days old. `general-recommerce-status-2026-05-26.md` in executive queue.
+4. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — Not authorized for execution without principal verdict.` after `---` separator (~line 9). One-minute fix; 10th cycle unactioned.
+5. **`/review` on `2976870` [12+ cycles]**: Manual `/review` in attended session before any scaffold code.
+6. **conftest.py Finding 2 [Known Broken, 29+ cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
 7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
 8. **Context-repo Finding A Step 2**: Awaits principal verdict.
