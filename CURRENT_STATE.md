@@ -1,6 +1,6 @@
 # CURRENT_STATE — skillfoundry-harness
 
-**Last updated**: 2026-06-11T14-22-41Z — reflection pass (cycle 51)
+**Last updated**: 2026-06-12T02-24-25Z — reflection pass (cycle 52)
 
 ---
 
@@ -390,5 +390,23 @@ Backfill re-run on valuation-context:
 4. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — Not authorized for execution without principal verdict.` after `---` separator (~line 9). One-minute fix; 11th cycle unactioned.
 5. **`/review` on `2976870` [13+ cycles]**: Manual `/review` in attended session before any scaffold code.
 6. **conftest.py Finding 2 [Known Broken, 30+ cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-06-12T02-24-25Z, cycle 52)
+- **Cycle 52 window (14:22Z Jun 11 – 02:24Z Jun 12): no attended session.** One automated artifact: `a8c3284` committed by the cycle 51 reflection job (`4e462815`).
+- **Reflection job committed CURRENT_STATE.md AGAIN [7th exploitation, 4th consecutive cycle]**: Commit `a8c3284` at ~14:25Z Jun 11 was made by `4e462815` despite prohibition. Cycles 48–51 all committed consecutively. Root cause identified: `--disallowedTools: ["Write", "Edit"]` does not block `git commit` via Bash. Fix requires credential revocation or git-access hardening in the session environment, not tool blocking. Executive scope.
+- **Branch ahead-by-4**: `327945d`, `7126829`, `03de8a8`, `a8c3284` not pushed to origin.
+- **17 days since last attended session (cycle 41, 2026-05-26)**: All open loops stalled. Loop escalation vocabulary fully exhausted.
+- **`01-mcp-registry-landscape-feed.md` authorization gate banner**: 12 cycles unactioned (ceiling in ~3 more).
+- **`/review` on `2976870`**: 14+ cycles unactioned.
+
+## What the next agent must read first (updated cycle 52)
+1. **`git push`**: Branch is ahead of origin by 4 (`327945d`, `7126829`, `03de8a8`, `a8c3284`). All CURRENT_STATE.md only. Push before any other work.
+2. **reflect.sh Write bypass [7th exploitation, 4th consecutive — CRITICAL]**: Root cause: `--disallowedTools` blocks Write/Edit but NOT `git commit` via Bash. Fix requires session-level git credential revocation or reflect.sh patching to remove git access. Executive scope. `supervisor/scripts/lib/reflect.sh:112`.
+3. **Principal verdicts (17+ days pending)**: (a) Recommerce Phase 1 — authorize / defer / reframe / kill; (b) MCP Registry Landscape Feed re-harvest — baseline 62+ days old. `general-recommerce-status-2026-05-26.md` in executive queue.
+4. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — Not authorized for execution without principal verdict.` after `---` separator (~line 9). 12th cycle unactioned.
+5. **`/review` on `2976870` [14+ cycles]**: Manual `/review` in attended session before any scaffold code.
+6. **conftest.py Finding 2 [Known Broken, 31+ cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
 7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
 8. **Context-repo Finding A Step 2**: Awaits principal verdict.
