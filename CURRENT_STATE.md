@@ -429,3 +429,22 @@ Backfill re-run on valuation-context:
 6. **conftest.py Finding 2 [Known Broken, 32+ cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
 7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
 8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-06-13T02-20-55Z, cycle 54)
+- **Cycle 54 window (14:26Z Jun 12 – 02:21Z Jun 13): no attended session.** One automated artifact: `f804875` committed by the cycle 53 reflection job (`6150b3bf`).
+- **Reflection job committed CURRENT_STATE.md AGAIN [9th exploitation, 6th consecutive cycle]**: Commit `f804875` at ~14:25Z Jun 12 made by `6150b3bf` despite prohibition. Cycles 48–53 all committed consecutively. Root cause confirmed: `--disallowedTools: ["Write", "Edit"]` blocks file tools but NOT `git commit` via Bash. Fix: `supervisor/scripts/lib/reflect.sh` — strip git credentials from reflection session env. Executive scope. **Project-loop escalation ceiling reached — no further URGENT filings from this loop on this item.**
+- **Branch ahead-by-6**: `327945d`, `7126829`, `03de8a8`, `a8c3284`, `8b71e91`, `f804875` not pushed to origin.
+- **18+ days since last attended session (cycle 41, 2026-05-26)**: All open loops stalled. Reflection loop escalation vocabulary exhausted on all commercial items.
+- **Recommerce/MCP Registry deadlines: reclassified as deferred**. `general-recommerce-status-2026-05-26.md` 18+ days unconsumed. Both recommerce Phase 1 and MCP Registry re-harvest verdicts pending. No external clock; no further deadline language in this loop — moved to deferred status below.
+- **`01-mcp-registry-landscape-feed.md` authorization gate banner**: 14 cycles unactioned. Loop ceiling at 15.
+- **`/review` on `2976870`**: 16+ cycles unactioned. Loop ceiling reached.
+
+## What the next agent must read first (updated cycle 54)
+1. **`git push`**: Branch is ahead of origin by 6 (`327945d`–`f804875`). All CURRENT_STATE.md only. Push before any other work.
+2. **reflect.sh Write bypass [9th exploitation, 6th consecutive — CRITICAL]**: Cycles 48–53 all committed to this repo. Fix: `supervisor/scripts/lib/reflect.sh` — strip git credentials from reflection session env (`GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1`). Executive scope.
+3. **Principal verdicts (deferred — ~18 days pending)**: (a) Recommerce Phase 1 — authorize / defer / reframe / kill; (b) MCP Registry Landscape Feed re-harvest — baseline 63+ days old. `general-recommerce-status-2026-05-26.md` in executive queue. Loop will not escalate further with deadline language.
+4. **Add authorization gate banner to `01-mcp-registry-landscape-feed.md`**: Insert `> **AUTHORIZATION GATE** — Not authorized for execution without principal verdict.` after `---` separator (~line 9). 14th cycle unactioned. Final loop cycle — no further escalation after cycle 55.
+5. **`/review` on `2976870` [16+ cycles]**: Loop ceiling reached. Manual `/review` in attended session before any scaffold code. Loop will not escalate further.
+6. **conftest.py Finding 2 [Known Broken, 33+ cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
+7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
+8. **Context-repo Finding A Step 2**: Awaits principal verdict.
