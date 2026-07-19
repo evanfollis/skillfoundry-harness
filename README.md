@@ -29,7 +29,16 @@ skillfoundry describe /path/to/context-repo
 skillfoundry validate /path/to/context-repo
 ```
 
-To bootstrap a fresh lineage instead: `skillfoundry init-context /tmp/demo-context --agent-id demo --name "Demo Context"`. Run the test suite with `python3 -m unittest discover -s tests`.
+To bootstrap a fresh lineage instead: `skillfoundry init-context /tmp/demo-context --agent-id demo --name "Demo Context"`.
+
+Run the test suite with pytest (declared as the `test` extra):
+
+```bash
+python3 -m pip install -e ".[test]"
+python3 -m pytest tests/
+```
+
+CI (`.github/workflows/repo-hygiene.yml`) runs this same command on every push and pull request to `main`.
 
 ## What works today
 
@@ -44,7 +53,7 @@ Verified against `src/skillfoundry_harness/` and `cli.py`:
 - Durable validation artifacts (`record-validation`), approval records, and content-pinned proposal/validation/approval artifacts enforced at apply time.
 - JSON Schema for context bundles under `schemas/context-bundle.schema.json`.
 - `thread`, `turn`, and `run` records persisted under `runs/`.
-- stdlib `unittest` test suite under `tests/`.
+- pytest suite under `tests/` (61 tests: `unittest`-style validation/runtime checks plus pytest-native discovery-adapter tests), green in CI.
 
 Intended but not yet in scope here: agent registry, hub/coordination, chat orchestration UX, long-lived context authoring tools.
 
