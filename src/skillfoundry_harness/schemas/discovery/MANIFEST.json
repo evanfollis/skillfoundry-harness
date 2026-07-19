@@ -1,0 +1,19 @@
+{
+  "_comment": "Pinned copy of the L1 discovery-framework JSON Schemas from context-repository. Do not hand-edit the schema files or this manifest; regenerate with scripts/refresh_discovery_schema_bundle.py and commit together. The drift guard in the test suite compares this against the canonical source.",
+  "generated_at": "2026-07-19",
+  "schemas": {
+    "claim.schema.json": "sha256:a1f7bfcd02d1c2a91f2c153649a7d3f60e62057b0c8b383a5c923c4ad4811e6c",
+    "common.schema.json": "sha256:7742f581f8f5b53eb64a3993f3f1c82a0541f97619ac23672281b2b50bfbbccb",
+    "decision.schema.json": "sha256:e9546cff26512fc5bcf72988ca4b68a2bceeb2e17eee9b506692dc7ea5c72b40",
+    "event-log-entry.schema.json": "sha256:08567ed1fd12084f8a82e5ab8321022007824447837eb9f7120dbf80a53c1491",
+    "evidence.schema.json": "sha256:d93cf5a368b86605198684aed0c9a430749fa9810ff9bee2a91ce1fe37eb6e0b",
+    "policy.schema.json": "sha256:d43eac6d5ddd04eb27a95cd66eb8fe93d00bc275040ca17fa5f21a046041d560",
+    "promotion.schema.json": "sha256:679223924db2aaa7d3bfa0c5dcdf4b3e8294b5279427ed5fecd8ef52b4cb7aec",
+    "realization.schema.json": "sha256:b48b739ec17ddf1f13c14a7b4053275689ef2ad2898ff1db683a469aaf838d0b"
+  },
+  "source": {
+    "commit": "f5b0fd0f56def7f69217a1eedb9241568ac2408b",
+    "path": "spec/discovery-framework/schemas",
+    "repo": "github.com/evanfollis/context-repository"
+  }
+}

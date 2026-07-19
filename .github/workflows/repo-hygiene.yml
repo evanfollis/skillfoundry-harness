@@ -16,7 +16,24 @@ jobs:
           python-version: "3.12"
       - name: Install package with test extras
         run: python3.12 -m pip install -e ".[test]"
+      # Hygiene must run BEFORE the canon checkout below: it rglobs the repo tree,
+      # and the context-repository working copy would otherwise be scanned as if it
+      # were harness content.
       - name: Check repository hygiene
         run: python3.12 scripts/check_repo_hygiene.py
+      # Check out the canonical L1 schemas so the drift guard can compare the
+      # harness's vendored bundle against real canon on the runner (not only where
+      # a workspace checkout happens to exist). Tracked at `main` on purpose: if
+      # canon advances past the pinned bundle, the drift test goes red and tells
+      # you to run scripts/refresh_discovery_schema_bundle.py. A deterministic pin
+      # equal to the bundle's origin would make the guard vacuous.
+      - name: Check out canonical context-repository (schema drift guard)
+        uses: actions/checkout@v4
+        with:
+          repository: evanfollis/context-repository
+          ref: main
+          path: _canon
       - name: Run tests
+        env:
+          SKILLFOUNDRY_CANON_SCHEMA_DIR: ${{ github.workspace }}/_canon/spec/discovery-framework/schemas
         run: python3.12 -m pytest tests/

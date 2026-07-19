@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaplex.ai/discovery-framework/0.2.0/decision.schema.json",
+  "title": "Decision",
+  "description": "Structured skeleton of a decision. Reasoning lives in the 'rationale' free-form text and cited artifacts. The structured fields exist only for pre-registration integrity, post-hoc audit, and replay — not to constrain how the decision is reached.",
+  "type": "object",
+  "required": [
+    "id",
+    "spec_version",
+    "object_type",
+    "emitted_at",
+    "emitter",
+    "layer",
+    "roles",
+    "role_declared_at",
+    "binding",
+    "sources",
+    "kind",
+    "candidate_claims",
+    "chosen_claim_id",
+    "cited_evidence",
+    "rationale",
+    "policies_in_force",
+    "exposure"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "spec_version": { "$ref": "common.schema.json#/$defs/SpecVersion" },
+    "object_type": { "const": "Decision" },
+    "emitted_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "emitter": { "$ref": "common.schema.json#/$defs/PrincipalId" },
+    "layer": { "$ref": "common.schema.json#/$defs/LayerId" },
+    "roles": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/Role" },
+      "contains": { "const": "Decision" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "role_declared_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "binding": { "$ref": "common.schema.json#/$defs/Binding" },
+    "sources": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SourceRef" } },
+    "kind": {
+      "type": "string",
+      "enum": ["promote", "kill", "continue", "pivot", "amend_policy", "rollback_policy"]
+    },
+    "candidate_claims": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Set of claims the decision arbitrated between. Cardinality 1 is normal; cardinality >1 represents contention (scarce realization slot, multi-instance capital contention, etc.)."
+    },
+    "chosen_claim_id": {
+      "type": "string",
+      "description": "The claim selected by this decision. MUST be a member of candidate_claims."
+    },
+    "successor_claim_id": {
+      "type": "string",
+      "description": "Optional. When kind='pivot' or 'kill' and a successor Claim is opened to continue the investigation under a revised frame, this points to that successor. The successor MUST be a new immutable Claim with its own role_declared_at (not a mutation). This is how hypothesis lineage is preserved across regime shifts and pivots without violating Claim immutability."
+    },
+    "rejected_alternatives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim_id", "rationale"],
+        "properties": {
+          "claim_id": { "type": "string" },
+          "rationale": { "type": "string", "description": "Free-form. Why this candidate was not chosen." }
+        }
+      },
+      "description": "Required when candidate_claims has > 1 entry. The arbitration objective itself is free-form text (see 'arbitration' below)."
+    },
+    "arbitration": {
+      "type": "object",
+      "description": "Required when candidate_claims has > 1 entry. Captures the arbitration move without prescribing HOW it was reasoned. The objective field is free-form; structure is only on what was compared and in what order.",
+      "properties": {
+        "objective": { "type": "string", "description": "Free-form statement of the arbitration objective (e.g., 'maximize risk-adjusted expected return over 90d, subject to correlated-exposure ceiling')." },
+        "tie_break_order": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Ordered list of tie-break criteria applied. Free-form strings."
+        },
+        "governing_policy_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Policies that bounded the arbitration (e.g., correlated-exposure ceiling)."
+        }
+      }
+    },
+    "cited_evidence": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Evidence ids cited by this decision. Evidence with polarity='contradicts' known at decision time MUST be cited."
+    },
+    "contradictions_addressed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "treatment"],
+        "properties": {
+          "evidence_id": { "type": "string" },
+          "treatment": {
+            "type": "string",
+            "enum": ["rebutted", "accepted_as_partial_constraint", "deferred_with_rationale", "hard_gated", "downgraded", "escalated_to_human"]
+          },
+          "contradiction_operator": {
+            "type": "string",
+            "description": "Free-form: what detected the contradiction (e.g., 'regime-mismatch check', 'human flag', 'statistical test X'). Optional — narrative detection is valid."
+          },
+          "rationale": { "type": "string" }
+        }
+      }
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Free-form reasoning trail. This is where the agent actually argues; the structured fields record what was pre-registered and what was emitted, not how the agent thought."
+    },
+    "policies_in_force": {
+      "type": "array",
+      "description": "Resolved Policy id + version effective at decision time for every governed field touched. minItems:1 is canon working as designed (obligation 7: a Decision governed by no policy is unanswerable) — do not relax it. For terminal decisions, validator rule 13 additionally requires that EVERY frozen Policy bound to the chosen Claim appear here: citing only the gate you passed is cherry-picking a pre-registration.",
+      "items": {
+        "type": "object",
+        "required": ["policy_id", "version"],
+        "properties": {
+          "policy_id": { "type": "string" },
+          "version": { "type": "string" },
+          "class": { "type": "string", "enum": ["constitutional", "operational", "frozen"] }
+        }
+      },
+      "minItems": 1
+    },
+    "exposure": { "$ref": "common.schema.json#/$defs/Exposure" },
+    "promotion_id": { "type": "string", "description": "Set when kind=promote" },
+    "target_policy_id": { "type": "string", "description": "Set when kind in {amend_policy, rollback_policy}" },
+    "policy_amendment": {
+      "type": "object",
+      "description": "Required when kind=amend_policy.",
+      "required": ["target_policy_id", "prior_version", "new_version"],
+      "properties": {
+        "target_policy_id": { "type": "string" },
+        "prior_version": { "type": "string" },
+        "new_version": { "type": "string" },
+        "ratification_evidence": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "policy_rollback": {
+      "type": "object",
+      "description": "Required when kind=rollback_policy. Makes rollback precedence mechanically replayable.",
+      "required": ["target_policy_id", "fired_rule_ids", "precedence_winner", "restored_version"],
+      "properties": {
+        "target_policy_id": { "type": "string" },
+        "fired_rule_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "All rollback rules whose conditions fired at evaluation time (not just the winner)."
+        },
+        "precedence_winner": {
+          "type": "string",
+          "description": "The rule id selected by the Policy.rollback_rule.precedence ordering."
+        },
+        "restored_version": { "type": "string" },
+        "rejected_amendment_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Any in-flight amend_policy Decision ids that were rejected by this rollback."
+        }
+      }
+    },
+    "instance_id": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "amend_policy" } }, "required": ["kind"] },
+      "then": { "required": ["policy_amendment", "target_policy_id"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "rollback_policy" } }, "required": ["kind"] },
+      "then": { "required": ["policy_rollback", "target_policy_id"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "promote" } }, "required": ["kind"] },
+      "then": { "required": ["promotion_id"] }
+    },
+    {
+      "description": "Contention integrity: when there is more than one candidate claim, rejected_alternatives and arbitration are required. Validators MUST additionally check: chosen_claim_id ∈ candidate_claims; rejected_alternatives.claim_ids ∪ {chosen_claim_id} == candidate_claims (set equality); no duplicates. (JSON Schema cannot express set-equality against a sibling array; this is a canon-validator rule recorded in canon.md.)",
+      "if": {
+        "properties": { "candidate_claims": { "minItems": 2 } },
+        "required": ["candidate_claims"]
+      },
+      "then": { "required": ["rejected_alternatives", "arbitration"] }
+    }
+  ]
+}

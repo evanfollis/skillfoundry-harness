@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaplex.ai/discovery-framework/0.2.0/evidence.schema.json",
+  "title": "Evidence",
+  "type": "object",
+  "required": [
+    "id",
+    "spec_version",
+    "object_type",
+    "emitted_at",
+    "emitter",
+    "layer",
+    "roles",
+    "role_declared_at",
+    "binding",
+    "sources",
+    "claim_id",
+    "evidence_type",
+    "tier",
+    "polarity",
+    "artifact"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "spec_version": { "$ref": "common.schema.json#/$defs/SpecVersion" },
+    "object_type": { "const": "Evidence" },
+    "emitted_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "emitter": { "$ref": "common.schema.json#/$defs/PrincipalId" },
+    "layer": { "$ref": "common.schema.json#/$defs/LayerId" },
+    "roles": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/Role" },
+      "contains": { "const": "Evidence" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "role_declared_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "binding": { "$ref": "common.schema.json#/$defs/Binding" },
+    "sources": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SourceRef" } },
+    "claim_id": { "type": "string", "minLength": 1 },
+    "evidence_type": {
+      "type": "string",
+      "description": "Domain-owned type. L3 adapter declares the hierarchy."
+    },
+    "tier": {
+      "type": "string",
+      "enum": ["internal_operational", "external_conversation", "external_commitment", "external_transaction"],
+      "description": "Tier hierarchy from Atlas/Skillfoundry lineage. Domains may add tiers via Policy."
+    },
+    "polarity": {
+      "type": "string",
+      "enum": ["supports", "contradicts", "neutral"],
+      "description": "Required so that the set of contradictory evidence is mechanically discoverable for audit question 21. The polarity is the emitter's declared interpretation; reasoning about why is free-form in the artifact."
+    },
+    "artifact": { "$ref": "common.schema.json#/$defs/ArtifactPointer" },
+    "observed_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "instance_id": { "type": "string" }
+  }
+}

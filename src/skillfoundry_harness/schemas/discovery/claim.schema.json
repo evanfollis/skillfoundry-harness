@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaplex.ai/discovery-framework/0.2.0/claim.schema.json",
+  "title": "Claim",
+  "allOf": [{ "$ref": "common.schema.json#/$defs/EnvelopeBase" }],
+  "type": "object",
+  "required": [
+    "id",
+    "spec_version",
+    "object_type",
+    "emitted_at",
+    "emitter",
+    "layer",
+    "roles",
+    "role_declared_at",
+    "statement",
+    "falsification_criteria",
+    "exposure"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": true,
+    "spec_version": true,
+    "object_type": { "const": "Claim" },
+    "emitted_at": true,
+    "emitter": true,
+    "layer": true,
+    "roles": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/Role" },
+      "contains": { "const": "Claim" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "role_declared_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "binding": { "$ref": "common.schema.json#/$defs/Binding" },
+    "sources": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SourceRef" } },
+    "statement": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Falsifiable natural-language statement. Immutable after creation."
+    },
+    "falsification_criteria": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "description": "Pre-registered conditions under which the claim is falsified."
+    },
+    "thresholds": {
+      "type": "object",
+      "description": "Domain-defined quantitative thresholds. Pre-registered; immutable once probe phase is entered (enforced via EventLogEntry phase-transition events, not by mutating the Claim).",
+      "additionalProperties": true
+    },
+    "exposure": { "$ref": "common.schema.json#/$defs/Exposure" },
+    "artifact": { "$ref": "common.schema.json#/$defs/ArtifactPointer" },
+    "instance_id": { "type": "string" }
+  }
+}

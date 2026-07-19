@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaplex.ai/discovery-framework/0.2.0/promotion.schema.json",
+  "title": "Promotion",
+  "type": "object",
+  "required": [
+    "id",
+    "spec_version",
+    "object_type",
+    "emitted_at",
+    "emitter",
+    "layer",
+    "roles",
+    "role_declared_at",
+    "binding",
+    "sources",
+    "decision_id",
+    "promoted_kind",
+    "promoted_ref",
+    "external_validation",
+    "ceiling_check",
+    "exposure"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "spec_version": { "$ref": "common.schema.json#/$defs/SpecVersion" },
+    "object_type": { "const": "Promotion" },
+    "emitted_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "emitter": { "$ref": "common.schema.json#/$defs/PrincipalId" },
+    "layer": { "$ref": "common.schema.json#/$defs/LayerId" },
+    "roles": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/Role" },
+      "contains": { "const": "Promotion" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "role_declared_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "binding": { "$ref": "common.schema.json#/$defs/Binding" },
+    "sources": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SourceRef" } },
+    "decision_id": { "type": "string" },
+    "promoted_kind": {
+      "type": "string",
+      "description": "Domain-owned category (e.g., 'primitive', 'offer', 'allocation_policy'). Declared via L3 adapter."
+    },
+    "promoted_ref": {
+      "$ref": "common.schema.json#/$defs/ArtifactPointer",
+      "description": "Hash-bound pointer to the promoted downstream artifact. Uses ArtifactPointer so replay-from-envelopes-alone stays intact."
+    },
+    "novel_primitive_class": {
+      "type": "boolean",
+      "description": "If true, adversarial_review is required per phase invariant."
+    },
+    "adversarial_review": {
+      "type": "object",
+      "required": ["reviewer", "artifact", "verdict"],
+      "properties": {
+        "reviewer": { "type": "string", "description": "Principal id or cross-agent reviewer identifier." },
+        "artifact": { "$ref": "common.schema.json#/$defs/ArtifactPointer" },
+        "verdict": { "type": "string", "enum": ["approved", "approved_with_conditions", "rejected"] }
+      }
+    },
+    "external_validation": {
+      "type": "object",
+      "required": ["tier_satisfied", "evidence_ids"],
+      "description": "Machine-checkable record of phase invariant satisfaction. The tier vocabulary is domain-owned; only the structural record is canon.",
+      "properties": {
+        "tier_satisfied": {
+          "type": "string",
+          "description": "Which domain-declared external-validation tier was met. Free-form string resolvable against the domain adapter's declared hierarchy."
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      }
+    },
+    "ceiling_check": {
+      "type": "object",
+      "required": ["governing_ceiling_policy_id", "ceiling_value", "committed_value", "passed"],
+      "description": "Exposure-envelope ceiling check result. Required for every Promotion.",
+      "properties": {
+        "governing_ceiling_policy_id": { "type": "string" },
+        "governing_policy_version": { "type": "string" },
+        "ceiling_value": { "type": "number" },
+        "committed_value": { "type": "number" },
+        "passed": { "type": "boolean" }
+      }
+    },
+    "exposure": { "$ref": "common.schema.json#/$defs/Exposure" },
+    "instance_id": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "novel_primitive_class": { "const": true } },
+        "required": ["novel_primitive_class"]
+      },
+      "then": { "required": ["adversarial_review"] }
+    },
+    {
+      "if": {
+        "properties": { "ceiling_check": { "properties": { "passed": { "const": false } }, "required": ["passed"] } },
+        "required": ["ceiling_check"]
+      },
+      "then": {
+        "description": "ceiling_check.passed=false is a canon violation — a Promotion envelope with passed=false MUST NOT exist; it should be emitted as a canon_violation EventLogEntry instead.",
+        "not": {}
+      }
+    }
+  ]
+}

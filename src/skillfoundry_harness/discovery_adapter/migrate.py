@@ -12,8 +12,11 @@ Usage:
 Reads every assumption, probe, evidence, decision markdown under
 `memory/venture/` and emits canon envelopes to `.canon/`.
 
-Validates every envelope against the L1 discovery-framework JSON Schemas at
-`/opt/workspace/projects/context-repository/spec/discovery-framework/schemas/`.
+Validates every envelope against the L1 discovery-framework JSON Schemas, which
+are vendored into this package as a pinned bundle under `schemas/discovery/` (kept
+in sync with the canonical `context-repository` source by
+`scripts/refresh_discovery_schema_bundle.py` and a drift guard in the test suite).
+Point `--schemas` at another directory to validate against a different canon.
 
 Exit codes:
     0 — all envelopes valid
@@ -42,11 +45,15 @@ from skillfoundry_harness.discovery_adapter.emit import (
     parse_header,
     parse_probe,
 )
+from skillfoundry_harness.discovery_adapter.schema_bundle import BUNDLE_DIR
 
 
-DEFAULT_SCHEMA_DIR = Path(
-    "/opt/workspace/projects/context-repository/spec/discovery-framework/schemas"
-)
+# Default to the pinned schema bundle shipped inside this package, so the harness
+# validates canon envelopes without depending on a sibling repo being checked out
+# at a hard-coded absolute path. The bundle is kept in lockstep with the canonical
+# context-repository source by scripts/refresh_discovery_schema_bundle.py; a drift
+# guard in the test suite fails loudly if canon moves ahead of it.
+DEFAULT_SCHEMA_DIR = BUNDLE_DIR
 
 # Workspace-shared telemetry sink. Override via env for tests / non-default workspaces.
 TELEMETRY_PATH = Path(

@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaplex.ai/discovery-framework/0.2.0/event-log-entry.schema.json",
+  "title": "EventLogEntry",
+  "description": "Append-only timestamped record. Load-bearing events (phase transitions, canon violations, activation changes, advisory rejections, trigger firings) use typed sub-schemas under the matching discriminator field. The untyped 'detail' is reserved for non-load-bearing events; replay-critical fields MUST appear as first-class typed sub-schemas, not under 'detail'.",
+  "type": "object",
+  "required": [
+    "id",
+    "spec_version",
+    "object_type",
+    "emitted_at",
+    "emitter",
+    "layer",
+    "roles",
+    "role_declared_at",
+    "binding",
+    "sources",
+    "event_kind"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "spec_version": { "$ref": "common.schema.json#/$defs/SpecVersion" },
+    "object_type": { "const": "EventLogEntry" },
+    "emitted_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "emitter": { "$ref": "common.schema.json#/$defs/PrincipalId" },
+    "layer": { "$ref": "common.schema.json#/$defs/LayerId" },
+    "roles": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/Role" },
+      "contains": { "const": "EventLogEntry" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "role_declared_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "binding": { "$ref": "common.schema.json#/$defs/Binding" },
+    "sources": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SourceRef" } },
+    "event_kind": {
+      "type": "string",
+      "enum": [
+        "cross_layer_read",
+        "canon_violation",
+        "activation_change",
+        "methodology_log",
+        "phase_transition",
+        "advisory_rejection",
+        "trigger_fired",
+        "other"
+      ]
+    },
+    "subject_id": { "type": "string" },
+    "phase_transition": {
+      "type": "object",
+      "description": "Required when event_kind=phase_transition. Represents a Claim moving between phases without mutating the Claim itself.",
+      "required": ["claim_id", "from_phase", "to_phase"],
+      "properties": {
+        "claim_id": { "type": "string" },
+        "from_phase": { "type": "string", "enum": ["draft", "probe", "promotion"] },
+        "to_phase": { "type": "string", "enum": ["draft", "probe", "promotion"] },
+        "triggering_decision_id": { "type": "string" }
+      }
+    },
+    "canon_violation": {
+      "type": "object",
+      "description": "Required when event_kind=canon_violation.",
+      "required": ["violation_kind", "offending_emission"],
+      "properties": {
+        "violation_kind": { "$ref": "common.schema.json#/$defs/ViolationKind" },
+        "offending_emission": {
+          "type": "object",
+          "description": "Pointer to the rejected emission. If rejection happened pre-persist, the payload is inlined via artifact pointer.",
+          "properties": {
+            "object_type": { "$ref": "common.schema.json#/$defs/Role" },
+            "attempted_id": { "type": "string" },
+            "artifact": { "$ref": "common.schema.json#/$defs/ArtifactPointer" }
+          }
+        },
+        "rationale": { "type": "string" }
+      }
+    },
+    "activation_change": {
+      "type": "object",
+      "description": "Required when event_kind=activation_change.",
+      "required": ["capability_id", "source_layer", "source_output_type", "consumer_layer", "consumer_path", "from_binding", "to_binding", "governing_trigger_claim_id"],
+      "properties": {
+        "capability_id": { "type": "string" },
+        "source_layer": { "$ref": "common.schema.json#/$defs/LayerId" },
+        "source_output_type": { "type": "string" },
+        "consumer_layer": { "$ref": "common.schema.json#/$defs/LayerId" },
+        "consumer_path": { "$ref": "common.schema.json#/$defs/ConsumerPath" },
+        "from_binding": { "$ref": "common.schema.json#/$defs/Binding" },
+        "to_binding": { "$ref": "common.schema.json#/$defs/Binding" },
+        "governing_trigger_claim_id": { "type": "string" }
+      }
+    },
+    "cross_layer_read": {
+      "type": "object",
+      "description": "Required when event_kind=cross_layer_read.",
+      "required": ["reader_layer", "source_layer", "object_ids", "descent"],
+      "properties": {
+        "reader_layer": { "$ref": "common.schema.json#/$defs/LayerId" },
+        "source_layer": { "$ref": "common.schema.json#/$defs/LayerId" },
+        "object_ids": { "type": "array", "items": { "type": "string" } },
+        "descent": { "type": "boolean" },
+        "governing_policy_id": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "descent": { "const": true } }, "required": ["descent"] },
+          "then": { "required": ["governing_policy_id"] }
+        }
+      ]
+    },
+    "advisory_rejection": {
+      "type": "object",
+      "description": "Required when event_kind=advisory_rejection. Records an attempted automated consumption of an advisory artifact that was refused. The attempted payload is by definition schema-invalid as a SourceRef (that is why it was rejected), so offending_source_ref is a LAX shape — the minimum discoverable fields plus a raw payload pointer. Validator rule: if offending_source_ref.consumer_path and attempted_consumer_path are both present, they MUST match.",
+      "required": ["attempted_consumer_path", "rejection_reason", "offending_source_ref"],
+      "allOf": [
+        {
+          "description": "offending_source_ref.consumer_path, when present, MUST equal attempted_consumer_path.",
+          "if": {
+            "properties": {
+              "offending_source_ref": {
+                "type": "object",
+                "required": ["consumer_path"]
+              }
+            },
+            "required": ["offending_source_ref"]
+          },
+          "then": {
+            "properties": {
+              "offending_source_ref": {
+                "properties": {
+                  "consumer_path": {
+                    "$comment": "Mechanical equality enforced via a data-dependency trick: validators check offending_source_ref.consumer_path == attempted_consumer_path per canon.md validator rule #8. Plain JSON Schema cannot express inter-field equality; this allOf documents the locus and relies on the canon-validator contract."
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "attempted_consumer_path": {
+          "$ref": "common.schema.json#/$defs/AutomatedConsumerPath",
+          "description": "This event only meaningfully exists for automated consumer paths (humans are permitted to consume advisory artifacts per control-plane.md §4.2). The AutomatedConsumerPath enum excludes human_review and audit_only so a 'human advisory rejection' is schema-invalid."
+        },
+        "rejection_reason": {
+          "type": "string",
+          "enum": [
+            "missing_activation_capability_id",
+            "missing_source_output_type",
+            "automation_consumer_path_mismatch",
+            "no_activation_for_source_output_type",
+            "other"
+          ]
+        },
+        "rejection_detail": { "type": "string", "description": "Free-form elaboration when rejection_reason=other or when additional context aids audit." },
+        "offending_source_ref": {
+          "type": "object",
+          "description": "Best-effort partial view of the rejected SourceRef. Parsed fields are optional because the payload failed validation; raw_payload is REQUIRED so the original bytes are always inspectable from canon alone.",
+          "required": ["raw_payload"],
+          "additionalProperties": false,
+          "properties": {
+            "object_type": { "$ref": "common.schema.json#/$defs/Role" },
+            "id": { "type": "string" },
+            "binding": { "$ref": "common.schema.json#/$defs/Binding" },
+            "source_layer": { "$ref": "common.schema.json#/$defs/LayerId" },
+            "source_output_type": { "type": "string" },
+            "consumer_path": { "$ref": "common.schema.json#/$defs/AutomatedConsumerPath" },
+            "automation": { "type": "boolean" },
+            "activation_capability_id": { "type": "string" },
+            "raw_payload": { "$ref": "common.schema.json#/$defs/ArtifactPointer" }
+          }
+        }
+      }
+    },
+    "trigger_fired": {
+      "type": "object",
+      "description": "Required when event_kind=trigger_fired.",
+      "required": ["trigger_claim_id", "window_open", "window_close", "counted_event_ids"],
+      "properties": {
+        "trigger_claim_id": { "type": "string" },
+        "window_open": { "$ref": "common.schema.json#/$defs/Timestamp" },
+        "window_close": { "$ref": "common.schema.json#/$defs/Timestamp" },
+        "counted_event_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "methodology_log": {
+      "type": "object",
+      "description": "Required when event_kind=methodology_log. Free-form narrative of reasoning at probe entry; this is where thin, unconstrained agent reasoning is preserved.",
+      "required": ["artifact"],
+      "properties": {
+        "artifact": { "$ref": "common.schema.json#/$defs/ArtifactPointer" },
+        "summary": { "type": "string" }
+      }
+    },
+    "detail": {
+      "type": "object",
+      "description": "Reserved for event_kind=other. Non-load-bearing. If a field here becomes load-bearing for audit/replay, it MUST be promoted to a first-class typed sub-schema on the next spec major version.",
+      "additionalProperties": true
+    },
+    "artifact": { "$ref": "common.schema.json#/$defs/ArtifactPointer" },
+    "instance_id": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "description": "Exclusive discriminator: exactly the typed sub-payload matching event_kind may be present. 'other' permits only 'detail'.",
+      "oneOf": [
+        {
+          "properties": {
+            "event_kind": { "const": "phase_transition" },
+            "phase_transition": { "type": "object" }
+          },
+          "required": ["event_kind", "phase_transition"],
+          "not": {
+            "anyOf": [
+              { "required": ["canon_violation"] },
+              { "required": ["activation_change"] },
+              { "required": ["cross_layer_read"] },
+              { "required": ["advisory_rejection"] },
+              { "required": ["trigger_fired"] },
+              { "required": ["methodology_log"] },
+              { "required": ["detail"] }
+            ]
+          }
+        },
+        {
+          "properties": { "event_kind": { "const": "canon_violation" } },
+          "required": ["event_kind", "canon_violation"],
+          "not": { "anyOf": [
+            { "required": ["phase_transition"] },
+            { "required": ["activation_change"] },
+            { "required": ["cross_layer_read"] },
+            { "required": ["advisory_rejection"] },
+            { "required": ["trigger_fired"] },
+            { "required": ["methodology_log"] },
+            { "required": ["detail"] }
+          ] }
+        },
+        {
+          "properties": { "event_kind": { "const": "activation_change" } },
+          "required": ["event_kind", "activation_change"],
+          "not": { "anyOf": [
+            { "required": ["phase_transition"] },
+            { "required": ["canon_violation"] },
+            { "required": ["cross_layer_read"] },
+            { "required": ["advisory_rejection"] },
+            { "required": ["trigger_fired"] },
+            { "required": ["methodology_log"] },
+            { "required": ["detail"] }
+          ] }
+        },
+        {
+          "properties": { "event_kind": { "const": "cross_layer_read" } },
+          "required": ["event_kind", "cross_layer_read"],
+          "not": { "anyOf": [
+            { "required": ["phase_transition"] },
+            { "required": ["canon_violation"] },
+            { "required": ["activation_change"] },
+            { "required": ["advisory_rejection"] },
+            { "required": ["trigger_fired"] },
+            { "required": ["methodology_log"] },
+            { "required": ["detail"] }
+          ] }
+        },
+        {
+          "properties": { "event_kind": { "const": "advisory_rejection" } },
+          "required": ["event_kind", "advisory_rejection"],
+          "not": { "anyOf": [
+            { "required": ["phase_transition"] },
+            { "required": ["canon_violation"] },
+            { "required": ["activation_change"] },
+            { "required": ["cross_layer_read"] },
+            { "required": ["trigger_fired"] },
+            { "required": ["methodology_log"] },
+            { "required": ["detail"] }
+          ] }
+        },
+        {
+          "properties": { "event_kind": { "const": "trigger_fired" } },
+          "required": ["event_kind", "trigger_fired"],
+          "not": { "anyOf": [
+            { "required": ["phase_transition"] },
+            { "required": ["canon_violation"] },
+            { "required": ["activation_change"] },
+            { "required": ["cross_layer_read"] },
+            { "required": ["advisory_rejection"] },
+            { "required": ["methodology_log"] },
+            { "required": ["detail"] }
+          ] }
+        },
+        {
+          "properties": { "event_kind": { "const": "methodology_log" } },
+          "required": ["event_kind", "methodology_log"],
+          "not": { "anyOf": [
+            { "required": ["phase_transition"] },
+            { "required": ["canon_violation"] },
+            { "required": ["activation_change"] },
+            { "required": ["cross_layer_read"] },
+            { "required": ["advisory_rejection"] },
+            { "required": ["trigger_fired"] },
+            { "required": ["detail"] }
+          ] }
+        },
+        {
+          "properties": { "event_kind": { "const": "other" } },
+          "required": ["event_kind", "detail"],
+          "not": { "anyOf": [
+            { "required": ["phase_transition"] },
+            { "required": ["canon_violation"] },
+            { "required": ["activation_change"] },
+            { "required": ["cross_layer_read"] },
+            { "required": ["advisory_rejection"] },
+            { "required": ["trigger_fired"] },
+            { "required": ["methodology_log"] }
+          ] }
+        }
+      ]
+    }
+  ]
+}

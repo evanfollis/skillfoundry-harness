@@ -22,6 +22,19 @@ from skillfoundry_harness.discovery_adapter import (
     parse_evidence,
     parse_probe,
 )
+from skillfoundry_harness.discovery_adapter import schema_bundle
+from skillfoundry_harness.discovery_adapter.migrate import DEFAULT_SCHEMA_DIR
+
+
+# The harness ships a pinned copy of the L1 canon schemas (schemas/discovery/) so
+# migrate()'s success path is exercised hermetically here — DEFAULT_SCHEMA_DIR now
+# points at that bundle, which is always present. No test skips the success path.
+#
+# Two separate guards keep that bundle honest:
+#   * integrity — bundle files match their recorded digests (runs everywhere);
+#   * drift     — bundle matches the canonical context-repository source (runs
+#                 wherever canon is reachable: the workspace, or CI via a
+#                 checkout that sets SKILLFOUNDRY_CANON_SCHEMA_DIR).
 
 
 ASSUMPTION_MD = """\
@@ -402,13 +415,76 @@ def test_migrate_emits_failure_telemetry_when_venture_missing(
     sink = tmp_path / "events.jsonl"
     monkeypatch.setattr(migrate_mod, "TELEMETRY_PATH", sink)
 
-    rc = migrate(tmp_path / "no-venture-here", DEFAULT_SCHEMA_DIR, dry_run=True)
+    rc = migrate(
+        tmp_path / "no-venture-here",
+        DEFAULT_SCHEMA_DIR,
+        dry_run=True,
+        source_type="cron",
+    )
     capsys.readouterr()  # drain the "no memory/venture" message
     assert rc == 2
 
     lines = sink.read_text().strip().splitlines()
     assert len(lines) == 1
     ev = json.loads(lines[0])
+
+    # This failure path returns before any schema is loaded, so it runs in CI
+    # even when the canon schemas are absent. That makes it the right place to
+    # assert the workspace-mandated telemetry field shape (CLAUDE.md S1-P2),
+    # so the contract is verified everywhere — not only where canon is present.
+    for key in ("project", "source", "eventType", "level", "timestamp", "sourceType"):
+        assert key in ev, f"telemetry missing required field: {key}"
+    assert ev["project"] == "skillfoundry-harness"
+    assert ev["source"] == "skillfoundry_harness.discovery_adapter.migrate"
+    assert ev["sourceType"] == "cron"  # source_type passes through
+    assert isinstance(ev["timestamp"], int)  # epoch millis, not ISO string
     assert ev["eventType"] == "migrate.failure"
     assert ev["level"] == "error"
     assert "memory/venture not found" in ev["details"]["error"]
+
+
+# --------------------------------------------------------------------------
+# Canon schema bundle: self-sufficiency + drift guards.
+#
+# The harness vendors a pinned copy of the L1 discovery-framework schemas so it
+# can validate canon envelopes without the sibling context-repository checked
+# out. These guards keep that copy trustworthy.
+# --------------------------------------------------------------------------
+
+
+def test_default_schema_dir_is_the_bundled_copy():
+    # DEFAULT_SCHEMA_DIR must resolve inside the installed package (self-
+    # sufficient), not an absolute path into a sibling repo.
+    assert DEFAULT_SCHEMA_DIR == schema_bundle.BUNDLE_DIR
+    assert (DEFAULT_SCHEMA_DIR / "common.schema.json").is_file()
+
+
+def test_bundled_schemas_pass_manifest_integrity():
+    # Hermetic: shipped files match their recorded digests, and the manifest and
+    # the on-disk bundle agree on the file set. Runs everywhere, including CI.
+    problems = schema_bundle.verify_bundle_integrity()
+    assert problems == [], "bundle integrity problems:\n  " + "\n  ".join(problems)
+
+
+def test_bundled_schemas_match_canonical_source():
+    # Drift guard: the pinned bundle must be an exact mirror of the canonical
+    # context-repository schemas. Needs the canon source; CI provides it via a
+    # checkout that sets SKILLFOUNDRY_CANON_SCHEMA_DIR. When canon is genuinely
+    # unreachable (e.g. an offline checkout with the env var unset) this skips
+    # with a reason — that is a missing *reference for comparison*, not a skipped
+    # core code path; migrate()'s success path is exercised against the bundle by
+    # the tests above regardless.
+    canon_dir = schema_bundle.canonical_schema_dir()
+    if canon_dir is None:
+        pytest.skip(
+            "canonical context-repository schemas not reachable "
+            f"(set {schema_bundle.CANON_ENV_VAR} to a checkout to enable drift "
+            "detection here; it runs in the workspace and in CI)"
+        )
+    drift = schema_bundle.diff_against_canon(canon_dir)
+    assert drift == [], (
+        "vendored schema bundle has drifted from canon at "
+        f"{canon_dir}:\n  " + "\n  ".join(drift) + "\n"
+        "Refresh it: python3 scripts/refresh_discovery_schema_bundle.py "
+        "--canon <context-repository path>, then commit the bundle + manifest."
+    )

@@ -53,7 +53,8 @@ Verified against `src/skillfoundry_harness/` and `cli.py`:
 - Durable validation artifacts (`record-validation`), approval records, and content-pinned proposal/validation/approval artifacts enforced at apply time.
 - JSON Schema for context bundles under `schemas/context-bundle.schema.json`.
 - `thread`, `turn`, and `run` records persisted under `runs/`.
-- pytest suite under `tests/` (61 tests: `unittest`-style validation/runtime checks plus pytest-native discovery-adapter tests), green in CI.
+- pytest suite under `tests/` (64 tests), green in CI, covering runtime/validation, the discovery adapter, and a self-sufficiency guard on the vendored L1 canon schema bundle.
+- Pinned copy of the L1 discovery-framework JSON Schemas under `src/skillfoundry_harness/schemas/discovery/`, so canon validation needs no sibling checkout; kept in sync with `context-repository` by `scripts/refresh_discovery_schema_bundle.py` and a drift guard in CI.
 
 Intended but not yet in scope here: agent registry, hub/coordination, chat orchestration UX, long-lived context authoring tools.
 

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://synaplex.ai/discovery-framework/0.2.0/realization.schema.json",
+  "title": "Realization",
+  "description": "Externally committed world-state change consuming scarce resources or creating irreversible exposure. NOT 'success', NOT 'revenue', NOT 'learning'.",
+  "type": "object",
+  "required": [
+    "id",
+    "spec_version",
+    "object_type",
+    "emitted_at",
+    "emitter",
+    "layer",
+    "roles",
+    "role_declared_at",
+    "binding",
+    "sources",
+    "decision_id",
+    "realization_kind",
+    "committed_at",
+    "exposure"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "spec_version": { "$ref": "common.schema.json#/$defs/SpecVersion" },
+    "object_type": { "const": "Realization" },
+    "emitted_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "emitter": { "$ref": "common.schema.json#/$defs/PrincipalId" },
+    "layer": { "$ref": "common.schema.json#/$defs/LayerId" },
+    "roles": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/Role" },
+      "contains": { "const": "Realization" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "role_declared_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "binding": { "$ref": "common.schema.json#/$defs/Binding" },
+    "sources": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/SourceRef" } },
+    "decision_id": { "type": "string" },
+    "realization_kind": {
+      "type": "string",
+      "enum": [
+        "trade",
+        "outbound_campaign",
+        "published_asset",
+        "paid_compute",
+        "capital_allocation",
+        "policy_change",
+        "other"
+      ]
+    },
+    "realization_kind_detail": { "type": "string" },
+    "committed_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+    "external_refs": {
+      "type": "array",
+      "description": "External system identifiers: exchange order ids, campaign ids, publication URLs, etc.",
+      "items": { "type": "string" }
+    },
+    "exposure": { "$ref": "common.schema.json#/$defs/Exposure" },
+    "outcome": {
+      "type": "object",
+      "description": "Populated when known. Absent means outcome pending.",
+      "properties": {
+        "observed_at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+        "net_effect": { "type": "number" },
+        "polarity": { "type": "string", "enum": ["positive", "negative", "neutral"] },
+        "artifact": { "$ref": "common.schema.json#/$defs/ArtifactPointer" }
+      }
+    },
+    "instance_id": { "type": "string" }
+  }
+}
