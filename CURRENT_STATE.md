@@ -1,12 +1,12 @@
 # CURRENT_STATE — skillfoundry-harness
 
-**Last updated**: 2026-06-12T14-25-37Z — reflection pass (cycle 53)
+**Last updated**: 2026-07-20T02-24-48Z — reflection pass (cycle 55)
 
 ---
 
 ## Deployed / running state
 - **Type**: multi-agent harness for building products (Python)
-- **Runtime**: tested — 61/61 tests pass via `.venv/bin/python -m pytest tests/` (`8fcf2d1` added conftest.py telemetry isolation)
+- **Runtime**: tested — 64/64 tests pass via `.venv/bin/python -m pytest tests/` (`8044ba0` switched from unittest; `b802b16` added self-sufficient schema bundle)
 - **Entry**: `src/skillfoundry_harness/` — CLI via `skillfoundry` command (pyproject.toml)
 
 ## What's in progress
@@ -49,7 +49,7 @@ Backfill re-run on valuation-context:
 - **latencyMs misunderstood**: `latencyMs` measures server processing time, NOT network round-trip. ADR-0019 latency-floor heuristic is wrong. See evidence reclassification in valuation-context.
 - **adversarial-review.sh PATH bug [CRITICAL, ~180h+, ~132h PAST structural-blocker threshold]**: Codex IS installed at `/root/.nvm/versions/node/v22.22.0/bin/codex` (codex-cli 0.128.0). `adversarial-review.sh:42` fails because the unattended PATH omits NVM bin. Fix: Option B lookup chain in `adversarial-review.sh`. URGENT filed to executive: `URGENT-general-adversarial-review-path-fix-supervisor-2026-05-09T15-30Z.md`. Session 65447b9d proved the fix (ran real Codex review, 32,028 tokens). 6 days past 48h structural-blocker threshold.
 - **preflight-distribution-signal.md non-canonical [RESOLVED — valuation-context@9b87438]**: Probe file reformatted to canonical backtick key-value format in valuation-context at 2026-05-23T22:53Z. Harness migration clean: `events: 6 ok / 0 bad`. No longer failing.
-- **reflect.sh Write bypass unpatched [CRITICAL, ~300h+, TWO handoffs unconsumed since May 3 + May 12]**: Three confirmed exploitations: project repos (May 2, May 6) + supervisor HEAD advance (May 6 14:22Z, `2bdfdaf1`). `URGENT-reflect-sh-write-bypass-2026-05-03T15-23Z.md` (11 days old) and `general-reflect-sh-write-bypass-fix-2026-05-12T04-49Z.md` (~46h old), both no `.done`. Fix: one line in `supervisor/scripts/lib/reflect.sh:112` — add `"Write"` to `--disallowedTools`. Executive scope.
+- **reflect.sh Write bypass [RESOLVED 2026-07-20]**: `reflect.sh:128` now blocks `Bash(git commit:*)`, `Bash(git push:*)`, and `Bash(git reset:*)` via `--disallowedTools`. No reflection commits since `7018b7e` (Jun 13); Jul 18–19 reflections correctly short-circuited. CRITICAL downgraded to RESOLVED.
 - **CURRENT_STATE.md HEAD/disk gap [RESOLVED 2026-05-13T15:37Z]**: Closed by `8193a3a`. Discipline rule landed in `8127dec` (CLAUDE.md). Cold-start gap eliminated. Monitor for recurrence if next session skips the commit discipline rule.
 - **conftest.py Finding 2 [URGENT — 11 cycles, ESCALATED cycle 31]**: `tests/conftest.py:52` — `except Exception:` should be narrowed to `except (ImportError, ModuleNotFoundError):`. Called "safe to fix immediately, no ADR" since cycle 21. Unactioned through cycle 31. Cycle 30 committed to escalating if cycle 31 saw it still open — condition met. No dependency, no review required. Fix immediately in next attended session before any other work.
 
@@ -448,3 +448,18 @@ Backfill re-run on valuation-context:
 6. **conftest.py Finding 2 [Known Broken, 33+ cycles]**: `tests/conftest.py:52` — one-liner fix, no review needed.
 7. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: Executive scope.
 8. **Context-repo Finding A Step 2**: Awaits principal verdict.
+
+## What bit recent sessions (reflection 2026-07-20T02-24-48Z, cycle 55)
+- **Cycle 55 window (02:20Z Jun 13 – 02:24Z Jul 20): attended session on Jul 19 (external claude.ai, Opus 4.8, session `013GNGGigTfRmSDEk8qP9RhE`).** Two commits: `8044ba0` (fix CI: switch from `unittest discover` to `pytest tests/`, declare pytest as `.[test]` dep) and `b802b16` (vendor L1 discovery schemas into package with integrity + drift guards, eliminate sibling-checkout dependency). Branch is up to date with origin/main. 64 tests pass.
+- **CI was green-but-lying for ~58 days** (2026-05-23 to 2026-07-19): `unittest discover` silently skipped 21 pytest-style discovery-adapter tests. Any bug in `migrate.py` or schema validation during this period would have passed CI undetected. Now fixed at root.
+- **reflect.sh Write bypass RESOLVED**: `reflect.sh:128` blocks `Bash(git commit:*)` etc. No reflection commits since `7018b7e` (Jun 13). Jul 18–19 reflections short-circuited cleanly. CRITICAL downgraded to RESOLVED.
+- **conftest.py Finding 2 (34+ cycles)**: `tests/conftest.py:52` — `except Exception:` still present. Not fixed in this window. Still a one-liner.
+- **`/review` not invoked for `b802b16`**: 1,627-line architecture change (vendored schemas, drift-detection CI gate) shipped without adversarial review. Manual `/review` available as workaround.
+- **recommerce/MCP Registry verdicts**: 55+ days unconsumed. Loop ceilings reached in Jun. Recorded as deferred; no further escalation from this loop.
+
+## What the next agent must read first (updated cycle 55)
+1. **conftest.py Finding 2 [Known Broken, 34+ cycles]**: `tests/conftest.py:52` — `except Exception:` → `except (ImportError, ModuleNotFoundError):`. One-liner. No ADR, no review, no dependency. Fix before any other code change.
+2. **`/review` on `b802b16`**: 1,627-line schema-bundle + drift-guard change unreviewed. Run `/review` in attended session before building anything against the new bundle interface.
+3. **Principal verdicts (deferred, 55+ days pending)**: (a) Recommerce Phase 1 — authorize / defer / reframe / kill; (b) MCP Registry Landscape Feed re-harvest. `general-recommerce-status-2026-05-26.md` in executive queue. Loop will not escalate further.
+4. **Context-repo Finding A Step 2**: Awaits principal verdict from `context-repository/docs/canon-3claims-per-assumption-verdict.md`. Status unknown.
+5. **adversarial-review.sh PATH fix** [CRITICAL — ceiling reached]: `URGENT-general-adversarial-review-path-fix-supervisor-2026-05-09T15-30Z.md`. Executive scope.
