@@ -2,6 +2,22 @@
 
 Runtime harness for git-backed agent context repositories.
 
+**Lifecycle:** active. This is the canonical execution substrate for the
+Skillfoundry federation.
+
+**Verified today:** the installed-package pytest suite, repository hygiene, the
+vendored canon drift guard, and Ruff lint pass through `make check`. A strict
+mypy gate remains a dated migration exception; the current baseline has 31
+pre-existing findings and is not represented as green.
+
+```bash
+make setup
+make check
+```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for dependency boundaries and
+ADR-0050 transition gaps.
+
 ## At a glance
 
 - Installable Python package (`pip install -e .`) exposing a `skillfoundry` CLI and a `Runtime` API.

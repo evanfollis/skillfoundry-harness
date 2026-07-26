@@ -1,0 +1,12 @@
+schema_version = 1
+name = "skillfoundry-harness"
+shape = "library"
+lifecycle = "active"
+agentic_risk = "agentic"
+canonical_repository = "https://github.com/evanfollis/skillfoundry-harness"
+
+[artifacts]
+authoritative = ["src/", "tests/", "scripts/", "schemas/", "docs/"]
+runtime = []
+generated = [".pytest_cache/"]
+historical = [".reviews/"]
