@@ -20,6 +20,7 @@ dependencies = [
 # for production use stays lean; CI installs `.[test]`.
 test = [
     "pytest>=8",
+    "ruff==0.12.5",
 ]
 
 [project.scripts]

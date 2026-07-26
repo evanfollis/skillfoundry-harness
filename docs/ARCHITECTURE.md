@@ -1,5 +1,25 @@
 # Harness Architecture
 
+## July 2026 repository contract
+
+This repository is a `library` with `agentic_risk = "agentic"`. Source and
+tests use the PyPA `src/` layout. The packaged discovery schema bundle is a
+generated, digest-guarded copy of the published context-repository contract;
+the sibling contract checkout is required only for the CI drift comparison.
+
+Two bounded exceptions keep central conformance at `migrating`:
+
+- strict mypy currently reports 31 pre-existing typing findings across
+  validation and CLI boundaries. Owner: Skillfoundry harness. Milestone:
+  eliminate or precisely type those boundaries before enabling `make
+  typecheck` in `make check`;
+- the host session fabric still runs with broader identity, filesystem,
+  network, and credential reach than ADR-0050 permits. Owner: supervisor.
+  Milestone: the separate non-root/session-containment ADR and canary rollout.
+
+The existing AGENTS/CLAUDE instruction surface also needs a fresh ADR-0039
+baseline before it can be claimed fully governed.
+
 ## Topology
 
 The system is split into three layers:

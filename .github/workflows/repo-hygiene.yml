@@ -6,12 +6,17 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      # actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      # actions/setup-python@v7.0.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
       - name: Install package with test extras
@@ -19,8 +24,6 @@ jobs:
       # Hygiene must run BEFORE the canon checkout below: it rglobs the repo tree,
       # and the context-repository working copy would otherwise be scanned as if it
       # were harness content.
-      - name: Check repository hygiene
-        run: python3.12 scripts/check_repo_hygiene.py
       # Check out the canonical L1 schemas so the drift guard can compare the
       # harness's vendored bundle against real canon on the runner (not only where
       # a workspace checkout happens to exist). Tracked at `main` on purpose: if
@@ -28,12 +31,12 @@ jobs:
       # you to run scripts/refresh_discovery_schema_bundle.py. A deterministic pin
       # equal to the bundle's origin would make the guard vacuous.
       - name: Check out canonical context-repository (schema drift guard)
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: evanfollis/context-repository
           ref: main
           path: _canon
-      - name: Run tests
+      - name: Run canonical gate
         env:
           SKILLFOUNDRY_CANON_SCHEMA_DIR: ${{ github.workspace }}/_canon/spec/discovery-framework/schemas
-        run: python3.12 -m pytest tests/
+        run: make check

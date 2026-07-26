@@ -24,7 +24,6 @@ monkeypatch's per-test override layers cleanly on top of this autouse.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import pytest
