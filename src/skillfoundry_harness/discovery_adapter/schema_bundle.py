@@ -20,6 +20,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 
 
@@ -42,6 +43,24 @@ def _sha256(path: Path) -> str:
 
 def load_manifest() -> dict:
     return json.loads(MANIFEST_PATH.read_text())
+
+
+def bundled_spec_version() -> str:
+    """The discovery-framework spec version the vendored bundle implements.
+
+    Parsed from a schema ``$id`` (e.g.
+    ``https://synaplex.ai/discovery-framework/0.2.0/common.schema.json``). This
+    is the single source of truth for the spec version, so the adapter's emitted
+    ``spec_version`` stamp is derived from the schemas it validates against and
+    cannot silently drift from them (the failure class that shipped 0.1.0-stamped
+    envelopes against 0.2.0 schemas).
+    """
+    schema = json.loads((BUNDLE_DIR / "common.schema.json").read_text())
+    schema_id = schema.get("$id", "")
+    m = re.search(r"/discovery-framework/([0-9]+\.[0-9]+\.[0-9]+)/", schema_id)
+    if not m:
+        raise ValueError(f"cannot parse spec version from schema $id: {schema_id!r}")
+    return m.group(1)
 
 
 def verify_bundle_integrity() -> list[str]:

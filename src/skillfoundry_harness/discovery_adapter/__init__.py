@@ -6,7 +6,7 @@ Decision) is a markdown-first ontology: each object is a markdown file with
 a backtick-keyed header list (see README.md in each subdirectory). This
 adapter parses the markdown, extracts the structured metadata, and emits
 canon envelopes conforming to the L1 spec at
-/opt/workspace/projects/context-repository/spec/discovery-framework/ (v0.1.0).
+/opt/workspace/projects/context-repository/spec/discovery-framework/ (v0.2.0).
 
 The adapter is additive — the markdown files remain the authoring surface
 and are unchanged.

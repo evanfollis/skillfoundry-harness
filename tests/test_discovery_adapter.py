@@ -488,3 +488,26 @@ def test_bundled_schemas_match_canonical_source():
         "Refresh it: python3 scripts/refresh_discovery_schema_bundle.py "
         "--canon <context-repository path>, then commit the bundle + manifest."
     )
+
+
+def test_spec_version_derived_from_bundle_no_drift():
+    # The adapter's stamped spec_version must equal the version declared by the
+    # vendored schemas it validates against. Parse the schema $id INDEPENDENTLY
+    # here (not via the same helper) so this catches both a broken helper and a
+    # re-hardcoded SPEC_VERSION — the 0.1.0-vs-0.2.0 drift that shipped before.
+    import json as _json
+    import re as _re
+    from skillfoundry_harness.discovery_adapter import emit, schema_bundle
+
+    schema_id = _json.loads(
+        (schema_bundle.BUNDLE_DIR / "common.schema.json").read_text()
+    )["$id"]
+    version_in_schema = _re.search(
+        r"/discovery-framework/([0-9]+\.[0-9]+\.[0-9]+)/", schema_id
+    ).group(1)
+
+    assert emit.SPEC_VERSION == version_in_schema, (
+        f"emitter stamps spec_version={emit.SPEC_VERSION!r} but bundled schemas "
+        f"declare {version_in_schema!r} — reconcile via the vendored bundle"
+    )
+    assert schema_bundle.bundled_spec_version() == version_in_schema

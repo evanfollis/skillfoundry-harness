@@ -3,7 +3,7 @@
 This document explains the skillfoundry-valuation-context markdown → L1
 discovery-framework canon mapping implemented in `emit.py`.
 
-Canon spec: **0.1.0** (`/opt/workspace/projects/context-repository/spec/discovery-framework/`).
+Canon spec: **0.2.0** (`/opt/workspace/projects/context-repository/spec/discovery-framework/`).
 
 ## Object mappings
 
@@ -38,7 +38,7 @@ for the migration spec.
 | `economic_claim`, `channel_claim`, `buyer_role`, `owner`, `next_probe_id` | (not mapped) | preserved in artifact |
 
 **Adapter-supplied canon fields:**
-`spec_version=0.1.0`, `object_type=Claim`, `emitter=L3:skillfoundry`,
+`spec_version=0.2.0`, `object_type=Claim`, `emitter=L3:skillfoundry`,
 `layer=L3`, `roles=[Claim]`, `binding=binding`, `sources=[]`,
 `exposure=_default_exposure()`, `artifact=ArtifactPointer` (sha256 of file),
 `instance_id=skillfoundry-valuation-context`.

@@ -16,6 +16,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from skillfoundry_harness.discovery_adapter.schema_bundle import bundled_spec_version
+
 
 class AdapterParseError(ValueError):
     """Raised when a markdown file contains a value the adapter cannot map
@@ -34,7 +36,9 @@ def _resolve_enum(raw: str, mapping: dict[str, str],
     return result
 
 
-SPEC_VERSION = "0.1.0"
+# Derived from the vendored schema bundle, never hardcoded, so the stamped
+# spec_version cannot drift from the schemas envelopes are validated against.
+SPEC_VERSION = bundled_spec_version()
 EMITTER = "L3:skillfoundry"
 LAYER = "L3"
 INSTANCE_ID = "skillfoundry-valuation-context"
