@@ -20,8 +20,15 @@ dependencies = [
 # for production use stays lean; CI installs `.[test]`.
 test = [
     "pytest>=8",
-    "ruff==0.12.5",
+    "ruff==0.16.0",
 ]
+
+# Ruff 0.16 expanded its implicit defaults from the historical Pyflakes/pycodestyle
+# baseline to hundreds of additional rules. Keep the harness policy explicit so
+# dependency releases cannot silently redefine the gate; lint-policy expansion is
+# reviewed separately from tool maintenance.
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
 
 [project.scripts]
 skillfoundry = "skillfoundry_harness.cli:main"

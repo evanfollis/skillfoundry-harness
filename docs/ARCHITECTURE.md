@@ -20,6 +20,11 @@ Two bounded exceptions keep central conformance at `migrating`:
 The existing AGENTS/CLAUDE instruction surface also needs a fresh ADR-0039
 baseline before it can be claimed fully governed.
 
+Ruff is pinned to 0.16.0, while the enforced lint policy is declared explicitly
+as `E4`, `E7`, `E9`, and `F`. Ruff 0.16 materially expanded its implicit
+defaults; separating the tool version from the selected policy prevents a
+dependency update from silently turning on hundreds of unrelated rules.
+
 ## Topology
 
 The system is split into three layers:
