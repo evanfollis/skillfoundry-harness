@@ -3,10 +3,13 @@
 # Idempotent — re-run safely after adding new repos.
 
 set -euo pipefail
-HOOKS_DIR="/opt/workspace/projects/skillfoundry/skillfoundry-harness/scripts/hooks"
+# Discover paths relative to this script; avoid hardcoding server-specific locations.
+HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FEDERATION_ROOT="$(cd "$HOOKS_DIR/../../.." && pwd)"
+
 chmod +x "$HOOKS_DIR/pre-commit"
 
-for d in /opt/workspace/projects/skillfoundry/*/; do
+for d in "$FEDERATION_ROOT"/*/; do
   [[ -d "$d/.git" ]] || continue
   (cd "$d" && git config core.hooksPath "$HOOKS_DIR")
   echo "✓ hooks wired: $(basename "$d")"
