@@ -20,7 +20,7 @@ dependencies = [
 # for production use stays lean; CI installs `.[test]`.
 test = [
     "pytest>=8",
-    "ruff==0.16.0",
+    "ruff==0.16.5",
 ]
 
 # Ruff 0.16 expanded its implicit defaults from the historical Pyflakes/pycodestyle
