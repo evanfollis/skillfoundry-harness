@@ -2,6 +2,12 @@ __pycache__/
 *.pyc
 *.egg-info/
 .venv/
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*token*
 # Cloudflare Wrangler local cache. This is generated state (account id + email,
 # pages deploy cache) with no wrangler config in this repo — it lands here only
 # when `wrangler` is run from the wrong cwd. Never commit it.
