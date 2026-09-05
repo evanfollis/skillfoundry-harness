@@ -253,6 +253,22 @@ def test_policy_shape():
     assert p["value"]["values"] == ["weak", "moderate", "strong"]
 
 
+def test_policy_emission_is_deterministic_without_override():
+    first = emit_policy_quality_note()
+    second = emit_policy_quality_note()
+    assert first == second
+    assert first["effective_from"] == "2026-04-23T16:54:50.931819Z"
+
+
+def test_policy_effective_from_override_is_preserved():
+    effective_from = "2026-09-05T00:00:00Z"
+    p = emit_policy_quality_note(effective_from)
+    assert p["effective_from"] == effective_from
+    assert p["provenance"] == [
+        {"version": "1", "effective_from": effective_from}
+    ]
+
+
 # --------------------------------------------------------------------------
 # Finding 2 — unknown enum values must raise AdapterParseError, not coerce
 # --------------------------------------------------------------------------

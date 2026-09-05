@@ -45,6 +45,9 @@ INSTANCE_ID = "skillfoundry-valuation-context"
 
 QUALITY_POLICY_ID = "skillfoundry.evidence_quality_note"
 QUALITY_POLICY_VERSION = "1"
+# Policy v1 has a fixed effective date.  Using migration time here made an
+# otherwise deterministic backfill rewrite the policy envelope on every run.
+QUALITY_POLICY_EFFECTIVE_FROM = "2026-04-23T16:54:50.931819Z"
 
 
 # --------------------------------------------------------------------------
@@ -447,7 +450,7 @@ def emit_policy_quality_note(effective_from: str | datetime | None = None) -> di
     this Policy documents that interpretation so consumers can find it
     mechanically.
     """
-    ts = effective_from or datetime.now(timezone.utc)
+    ts = effective_from or QUALITY_POLICY_EFFECTIVE_FROM
     emitted = _iso(ts) if not isinstance(ts, str) else ts
 
     envelope = _common_envelope(
